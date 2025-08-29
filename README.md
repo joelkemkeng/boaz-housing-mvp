@@ -8,6 +8,7 @@ Plateforme de souscription et gestion de services de logement étudiant à l'ét
 - Docker 20.10+
 - Docker Compose 2.0+
 - Git
+- test code
 
 ### Installation One-Click
 ```bash
