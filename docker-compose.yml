@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: boaz-postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-boaz_housing_mvp}
+      - POSTGRES_USER=${POSTGRES_USER:-boaz_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-boaz_secure_password_2024}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - boaz-housing-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-boaz_user} -d ${POSTGRES_DB:-boaz_housing_mvp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: boaz-backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-boaz_user}:${POSTGRES_PASSWORD:-boaz_secure_password_2024}@postgres:5432/${POSTGRES_DB:-boaz_housing_mvp}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://frontend:3000}
+      - SMTP_HOST=${SMTP_HOST:-mailhog}
+      - SMTP_PORT=${SMTP_PORT:-1025}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-false}
+      - EMAIL_FROM=${EMAIL_FROM:-info@boaz-study.fr}
+      - APP_ENV=${APP_ENV:-development}
+      - SECRET_KEY=${SECRET_KEY:-boaz-housing-secret-key-dev-2024}
+      - API_V1_PREFIX=/api
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app:rw
+      - uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    networks:
+      - boaz-housing-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        python -c 'import time; import psycopg2; 
+        while True:
+          try: 
+            conn = psycopg2.connect(host=\"postgres\", database=\"${POSTGRES_DB:-boaz_housing_mvp}\", user=\"${POSTGRES_USER:-boaz_user}\", password=\"${POSTGRES_PASSWORD:-boaz_secure_password_2024}\")
+            conn.close()
+            break
+          except: 
+            time.sleep(1)' &&
+        echo 'Database ready!' &&
+        alembic upgrade head &&
+        echo 'Migrations applied!' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: boaz-frontend
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+      - REACT_APP_ENV=${APP_ENV:-development}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app:rw
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - boaz-housing-network
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    command: npm start
+
+  # PgAdmin - Interface Web PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:7
+    container_name: boaz-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@boaz-housing.dev}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin_boaz_2024}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      - postgres
+    networks:
+      - boaz-housing-network
+    restart: unless-stopped
+
+  # MailHog - Serveur SMTP Test
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: boaz-mailhog
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"    # SMTP
+      - "${MAILHOG_HTTP_PORT:-8025}:8025"    # Interface Web
+    networks:
+      - boaz-housing-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  boaz-housing-network:
+    driver: bridge
+    name: boaz-housing-network

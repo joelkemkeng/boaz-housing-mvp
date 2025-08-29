@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      target: development
+    volumes:
+      - ./backend:/app:rw
+      - uploads:/app/uploads
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=debug
+      - RELOAD=true
+    command: >
+      sh -c "
+        echo 'Development mode - Installing dependencies...' &&
+        pip install -r requirements-dev.txt &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting development server with hot reload...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+      "
+
+  frontend:
+    build:
+      target: development
+    volumes:
+      - ./frontend:/app:rw
+      - /app/node_modules
+    environment:
+      - FAST_REFRESH=true
+      - REACT_APP_DEBUG=true
+
+  # Redis pour cache développement (optionnel)
+  redis:
+    image: redis:7-alpine
+    container_name: boaz-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - boaz-housing-network
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
