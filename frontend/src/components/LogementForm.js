@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logementService } from '../services/logementService';
+import { getErrorMessage } from '../utils/errorHandler';
+import Alert from './Alert';
 
 const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,7 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     if (logement && isEdit) {
@@ -82,6 +85,10 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Reset des erreurs précédentes
+    setSubmitError(null);
+    setErrors({});
+    
     if (!validateForm()) {
       return;
     }
@@ -103,12 +110,8 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
 
       onSave(result);
     } catch (err) {
-      console.error('Erreur sauvegarde logement:', err);
-      if (err.response?.data?.detail) {
-        setErrors({ submit: err.response.data.detail });
-      } else {
-        setErrors({ submit: 'Erreur lors de la sauvegarde' });
-      }
+      const errorMessage = getErrorMessage(err);
+      setSubmitError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -121,6 +124,16 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             {isEdit ? 'Modifier le logement' : 'Nouveau logement'}
           </h3>
+          
+          {/* Alerte d'erreur */}
+          {submitError && (
+            <Alert
+              type="error"
+              title="Erreur de sauvegarde"
+              message={submitError}
+              onClose={() => setSubmitError(null)}
+            />
+          )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Titre */}
@@ -307,12 +320,6 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
               </select>
             </div>
 
-            {/* Erreur générale */}
-            {errors.submit && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {errors.submit}
-              </div>
-            )}
 
             {/* Boutons */}
             <div className="flex space-x-3 pt-4">

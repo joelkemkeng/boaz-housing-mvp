@@ -20,8 +20,6 @@ class LogementService:
     CHARGES_MAX = 10000.0     # Charges maximum acceptables
     MONTANT_TOTAL_MAX = 60000.0  # Montant total maximum
     
-    # Délai minimum entre changements de statut (en heures)
-    DELAI_MIN_CHANGEMENT_STATUT = 1
     
     def _validate_business_rules(self, logement_data: dict) -> None:
         """Valider les règles métier"""
@@ -201,31 +199,9 @@ class LogementService:
         return self.get_logements(db, statut=StatutLogement.DISPONIBLE)
     
     def _validate_statut_change(self, db_logement: Logement, nouveau_statut: StatutLogement) -> None:
-        """Valider les règles de changement de statut"""
-        current_statut = db_logement.statut
-        
-        # Règle: certaines transitions interdites
-        transitions_interdites = {
-            StatutLogement.OCCUPE: [StatutLogement.DISPONIBLE],  # Un logement occupé ne peut pas devenir disponible directement
-        }
-        
-        if current_statut in transitions_interdites and nouveau_statut in transitions_interdites[current_statut]:
-            raise LogementStatutError(
-                f"Transition interdite: de {current_statut.value} vers {nouveau_statut.value}. "
-                f"Le logement doit d'abord passer par 'maintenance'.",
-                current_statut.value, 
-                nouveau_statut.value
-            )
-        
-        # Règle: délai minimum entre changements (éviter les changements erratiques)
-        if db_logement.updated_at:
-            time_since_update = datetime.utcnow() - db_logement.updated_at.replace(tzinfo=None)
-            if time_since_update < timedelta(hours=self.DELAI_MIN_CHANGEMENT_STATUT):
-                raise LogementStatutError(
-                    f"Délai minimum de {self.DELAI_MIN_CHANGEMENT_STATUT}h non respecté entre changements de statut",
-                    current_statut.value,
-                    nouveau_statut.value
-                )
+        """Validation simple pour le MVP - aucune restriction"""
+        # MVP: Aucune validation, tous les changements de statut sont permis
+        pass
     
     def changer_statut_logement(
         self, 
@@ -238,12 +214,10 @@ class LogementService:
         if not db_logement:
             raise LogementNotFoundError(logement_id)
         
-        # Pas de changement si même statut
+        # MVP: Permettre même statut (pas de restriction)
         if db_logement.statut == nouveau_statut:
-            raise LogementBusinessRuleError(
-                f"Le logement est déjà dans le statut {nouveau_statut.value}",
-                "statut_identique"
-            )
+            # On fait quand même le changement pour simplifier l'interface
+            pass
         
         # Validation des règles de changement de statut
         self._validate_statut_change(db_logement, nouveau_statut)

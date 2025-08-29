@@ -75,6 +75,8 @@ services:
         echo 'Database ready!' &&
         alembic upgrade head &&
         echo 'Migrations applied!' &&
+        python update_existing_data.py &&
+        echo 'Data updated!' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
 

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { logementService } from '../services/logementService';
+import { handleError } from '../utils/errorHandler';
+import Alert from './Alert';
 
-const LogementList = ({ onEdit, onView, onDataChange }) => {
+const LogementList = ({ onEdit, onView, onDataChange, refreshTrigger }) => {
   const [logements, setLogements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,6 +13,12 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
     skip: 0,
     limit: 20
   });
+
+  // État séparé pour l'input de ville (pour éviter la perte de focus)
+  const [villeInput, setVilleInput] = useState('');
+  
+  // Pour le debounce de la recherche par ville
+  const debounceTimeoutRef = useRef(null);
 
   const statutColors = {
     disponible: 'bg-green-100 text-green-800',
@@ -31,8 +39,9 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
       setLogements(data);
       setError(null);
     } catch (err) {
-      setError('Erreur lors du chargement des logements');
-      console.error('Erreur chargement logements:', err);
+      const errorMsg = 'Erreur lors du chargement des logements';
+      setError(errorMsg);
+      handleError(err, 'Chargement des logements', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -40,10 +49,49 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
 
   useEffect(() => {
     loadLogements();
-  }, [filters]);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Écouter les mises à jour externes (après création/modification/suppression)
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      loadLogements();
+    }
+  }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Nettoyage du timeout au démontage du composant
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value, skip: 0 }));
+    if (key === 'ville') {
+      // Mise à jour immédiate de l'input seulement (garde le focus)
+      setVilleInput(value);
+      
+      // Debounce pour mettre à jour le filtre et déclencher la recherche
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
+      debounceTimeoutRef.current = setTimeout(() => {
+        setFilters(prev => ({ ...prev, ville: value, skip: 0 }));
+      }, 300);
+    } else {
+      // Pour les autres filtres (statut), pas de debounce
+      setFilters(prev => ({ ...prev, [key]: value, skip: 0 }));
+    }
+  };
+
+  const handleVilleReset = () => {
+    setVilleInput('');
+    setFilters({ statut: '', ville: '', skip: 0, limit: 20 });
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
   };
 
 
@@ -60,8 +108,9 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
         onDataChange();
       }
     } catch (err) {
-      setError('Erreur lors de la suppression');
-      console.error('Erreur suppression:', err);
+      const errorMsg = 'Erreur lors de la suppression';
+      setError(errorMsg);
+      handleError(err, 'Suppression logement', errorMsg);
     }
   };
 
@@ -74,8 +123,9 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
         onDataChange();
       }
     } catch (err) {
-      setError('Erreur lors du changement de statut');
-      console.error('Erreur changement statut:', err);
+      const errorMsg = 'Erreur lors du changement de statut';
+      setError(errorMsg);
+      handleError(err, 'Changement statut', errorMsg);
     }
   };
 
@@ -113,7 +163,7 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
             </label>
             <input
               type="text"
-              value={filters.ville}
+              value={villeInput}
               onChange={(e) => handleFilterChange('ville', e.target.value)}
               placeholder="Rechercher une ville..."
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -121,7 +171,7 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
           </div>
           <div className="flex items-end">
             <button
-              onClick={() => setFilters({ statut: '', ville: '', skip: 0, limit: 20 })}
+              onClick={handleVilleReset}
               className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Réinitialiser
@@ -132,9 +182,11 @@ const LogementList = ({ onEdit, onView, onDataChange }) => {
 
       {/* Message d'erreur */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+        <Alert
+          type="error"
+          message={error}
+          onClose={() => setError(null)}
+        />
       )}
 
       {/* Liste des logements */}

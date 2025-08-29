@@ -71,7 +71,7 @@ const LogementsPage = () => {
           </div>
           <div className="p-6">
             <LogementList
-              key={`list-${refreshKey}`}
+              refreshTrigger={refreshKey}
               onEdit={handleEditLogement}
               onView={handleViewLogement}
               onDataChange={handleDataChange}

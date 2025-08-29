@@ -30,6 +30,13 @@ services:
     environment:
       - FAST_REFRESH=true
       - REACT_APP_DEBUG=true
+    command: >
+      sh -c "
+        echo 'Development mode - Checking dependencies...' &&
+        npm ci &&
+        echo 'Starting development server...' &&
+        npm start
+      "
 
   # Redis pour cache développement (optionnel)
   redis:
