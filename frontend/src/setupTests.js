@@ -3,3 +3,24 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+
+// Mock axios globalement
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    post: jest.fn(),
+    get: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+    interceptors: {
+      response: {
+        use: jest.fn()
+      }
+    }
+  })),
+  post: jest.fn(),
+  get: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  patch: jest.fn()
+}));

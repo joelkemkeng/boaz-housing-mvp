@@ -1,0 +1,1 @@
+# Fichier pour rendre le package exceptions accessible

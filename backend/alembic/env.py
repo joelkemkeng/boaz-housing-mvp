@@ -29,9 +29,12 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+import sys
+sys.path.append('/app')
+
+from app.database import Base
+from app.models import Logement, Client, Souscription
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -41,7 +44,7 @@ target_metadata = None
 
 
 def get_url():
-    return os.getenv("DATABASE_URL", "postgresql://boaz_user:boaz_secure_password_2024@localhost:5432/boaz_housing_mvp")
+    return os.getenv("DATABASE_URL", "postgresql://admin:admin@boaz-postgres:5432/boaz_housing_db")
 
 
 def run_migrations_offline() -> None:

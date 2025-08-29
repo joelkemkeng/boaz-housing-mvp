@@ -1,16 +1,27 @@
 {
+  "organisation": {
     "nom": "Boaz-Housing",
     "logo_path": "/static/logo-boaz-housing.png",
     "site_web": "www.boaz-study.com",
-    "ceo_nom_complet": "Benjamin YOHO BATOMO",
-    "ceo_date_naissance": "17/03/1992",
-    "ceo_ville_naissance": "Douala",
-    "ceo_pays_naissance": "Cameroun",
-    "adresse_siege": "14 Rue Jean Piestre, Corbeil-Essonnes, 91100, France",
-    "ville_rcs": "Corbeil-Essonnes", 
-    "numero_rcs": "12345778909987665",
-    "code_naf": "1234D",
     "email_contact": "info@boaz-study.fr",
     "telephone": "+33 01 84 18 02 67",
+    "adresse_siege": "14 Rue Jean Piestre, Corbeil-Essonnes, 91100, France",
+    "ville_rcs": "Corbeil-Essonnes",
+    "numero_rcs": "12345778909987665",
+    "code_naf": "1234D",
     "cachet_signature_path": "/static/cachet-signature-boaz.png"
+  },
+  "ceo": {
+    "nom_complet": "Benjamin YOHO BATOMO",
+    "date_naissance": "17/03/1992",
+    "ville_naissance": "Douala",
+    "pays_naissance": "Cameroun"
+  },
+  "documents": {
+    "qr_code_base_url": "http://localhost:3000/verify",
+    "verification_endpoint": "/api/verify-attestation",
+    "reference_prefix": "ATT-",
+    "reference_format": "ATT-{random_code}",
+    "reference_example": "ATT-D28B8C5877C1CA25"
+  }
 }
