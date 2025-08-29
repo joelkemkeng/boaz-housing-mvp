@@ -1,0 +1,30 @@
+# frontend/Dockerfile.dev
+FROM node:18-alpine as base
+
+# Variables environnement
+ENV NODE_ENV=development
+
+# Installation dépendances système
+RUN apk add --no-cache git
+
+# Répertoire de travail
+WORKDIR /app
+
+# Copie package.json et installation dépendances
+COPY package*.json ./
+RUN npm ci --only=development
+
+# Target développement
+FROM base as development
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+
+# Target production  
+FROM base as production
+ENV NODE_ENV=production
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npx", "serve", "-s", "build", "-l", "3000"]
