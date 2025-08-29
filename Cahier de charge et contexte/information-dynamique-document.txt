@@ -1,0 +1,132 @@
+ 
+
+info-Organisation 
+
+ 
+
+0- Nom. Exemple : Eden Initiative /  Notre cas : Boaz-Housing 
+
+ 
+
+1- Logo    : notre Cas Logo de Boaz-Housing 
+
+ 
+
+2- Site Web de l'organisation. Exemple : Livin-France.com /  notre cas :  www.boaz-study.com 
+
+ 
+
+3- Nom complet du CEO.  Exemple : Gourcerol Eden /  Notre Cas : Benjamin YOHO BATOMO 
+
+ 
+
+4- Date de naissance du CEO.  Exemple : 17 mars 1992 
+
+ 
+
+5- Ville de Naissance du CEO. Exemple : Marcq-en-Baroeul / Notre Cas Douala :  
+
+ 
+
+6- Pays de Naissance du CEO. Exemple : en France/   Notre Cas : Cameroun 
+
+ 
+
+7- Adresse Siege de l'organisation.  Exemple : 165 avenue de bretagne, 
+
+EuraTechnologies, (59000) Lille   /  notre Cas : 14 Rue Jean Piestre, Corbeille Essonne, 9110 
+
+ 
+
+8- la ville de l.enregistrement du RSC numéro de registre de commerce. Exemple : Lille Metropole/ notre cas : corbeille Essonne. 
+
+ 
+
+9 – le numéro de Régis de commerce de l’organisation. Exemple : 812 904 928 00023 / notre cas : 12345778909987665 
+
+ 
+
+ 
+
+10- Code NAF de l’organisation. Exemple 8899B /  Notre Cas : 1234D 
+
+ 
+
+11- Cachet et Signature de l’organisation ,  (Dépend des Path Images de chacun ) 
+ 
+12 –Email info de l’organisation. Exemple : hello@livin-france.com /pour notre cas  , ca sera  info@boaz-study.fr 
+
+ 
+
+13 –Numéro de téléphone de l’organisation. Exemple : +337 49 16 73 95/pour notre cas , ça sera “+33 01 84 18 02 67” 
+ 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+info-utilisateur-client 
+
+ 
+
+1- Nom complet de l'utilisateur.  Exemple : Gourcerol Eden / pour notre cas, ça sera celui du client 
+
+ 
+
+2- Date de naissance du clien.  Exemple : 17 mars 1992 / pour notre cas, ça sera celui du client  
+
+ 
+
+3- Ville de naissance du client.  Exemple : Douala / pour notre cas, ça sera celui du client 
+
+ 
+
+4- Pays de naissance du client.  Exemple : Cameroun / pour notre cas, ça sera celui du client 
+
+ 
+
+5- Adresse du logement Sélectionner pour le client. Exemple : 24 Rue Du Docteur Charcot, Nanterre/ Notre cas, ça sera ce qui a été sélectionner ou saisit pour le client comme logement 
+
+ 
+
+6- Montant du Loyer. Exemple : 450 / pour notre cas il sera dépendant de l’adresse de logement qui a été choisi où sélectionner, parmi les adresses des logements enregistrer ou les logements enregistrer  
+ 
+6- La date d'entrée. Exemple :  05/09/2025   / pour notre cas, il dépendra de ce qui a été saisit lors de la souscription a attestation de logement  
+
+ 
+
+7- Temps de location. Exemple : 12 / pour notre cas, il sera en fonction de ce qui a été saisit lors de la souscription  
+ 
+
+ 
+
+ 
+
+Info –souscription –Attestation hébergement 
+
+ 
+
+Code QR , le contenu du code QR doit etre , un lien qui revoir vers une page de verification , et la page de verification doit retouner le statut de validiter de l’attestation de Logement , avec la date d’expiration du document  
+
+Une Reference , code Unique pour la souscription generer apres souscription  Exemple : ATT-D28B8C5877C1CA25, pour notre cas on le fera a partie de la plateforme après souscription  
