@@ -3,6 +3,7 @@ import LogementList from '../components/LogementList';
 import LogementForm from '../components/LogementForm';
 import LogementStats from '../components/LogementStats';
 import LogementDetailModal from '../components/LogementDetailModal';
+import { logementService } from '../services/logementService';
 
 const LogementsPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -11,6 +12,7 @@ const LogementsPage = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [logementToView, setLogementToView] = useState(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const handleNewLogement = () => {
     setSelectedLogement(null);
@@ -18,10 +20,34 @@ const LogementsPage = () => {
     setShowForm(true);
   };
 
-  const handleEditLogement = (logement) => {
-    setSelectedLogement(logement);
-    setIsEdit(true);
-    setShowForm(true);
+  const handleEditLogement = async (logement) => {
+    try {
+      setLoadingEdit(true);
+      
+      // Fermer d'abord le formulaire s'il est ouvert pour forcer un remount
+      setShowForm(false);
+      setSelectedLogement(null);
+      
+      // Récupérer les données fraîches du logement depuis l'API
+      const logementFrais = await logementService.getLogement(logement.id);
+      
+      // Ensuite définir le nouveau logement et ouvrir le formulaire
+      setTimeout(() => {
+        setSelectedLogement(logementFrais);
+        setIsEdit(true);
+        setShowForm(true);
+        setLoadingEdit(false);
+      }, 10);
+    } catch (error) {
+      console.error('Erreur lors de la récupération du logement:', error);
+      // En cas d'erreur, utiliser les données existantes
+      setTimeout(() => {
+        setSelectedLogement(logement);
+        setIsEdit(true);
+        setShowForm(true);
+        setLoadingEdit(false);
+      }, 10);
+    }
   };
 
   const handleViewLogement = (logement) => {
@@ -83,6 +109,7 @@ const LogementsPage = () => {
               onEdit={handleEditLogement}
               onView={handleViewLogement}
               onDataChange={handleDataChange}
+              loadingEdit={loadingEdit}
             />
           </div>
         </div>

@@ -32,8 +32,27 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
         montant_charges: logement.montant_charges || '',
         statut: logement.statut || 'disponible'
       });
+    } else if (!isEdit) {
+      // Réinitialiser le formulaire pour un nouveau logement
+      setFormData({
+        titre: '',
+        description: '',
+        adresse: '',
+        ville: '',
+        code_postal: '',
+        pays: 'France',
+        loyer: '',
+        montant_charges: '',
+        statut: 'disponible'
+      });
     }
-  }, [logement, isEdit]);
+  }, [logement?.id, isEdit]); // Utiliser logement?.id pour une dépendance plus fiable
+
+  // Réinitialiser les erreurs quand le formulaire s'ouvre
+  useEffect(() => {
+    setErrors({});
+    setSubmitError(null);
+  }, [logement?.id, isEdit]);
 
   const validateForm = () => {
     const newErrors = {};

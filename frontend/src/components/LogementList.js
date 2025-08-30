@@ -3,7 +3,7 @@ import { logementService } from '../services/logementService';
 import { handleError } from '../utils/errorHandler';
 import Alert from './Alert';
 
-const LogementList = ({ onEdit, onView, onDataChange, refreshTrigger }) => {
+const LogementList = ({ onEdit, onView, onDataChange, refreshTrigger, loadingEdit = false }) => {
   const [logements, setLogements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -258,9 +258,10 @@ const LogementList = ({ onEdit, onView, onDataChange, refreshTrigger }) => {
                       </button>
                       <button
                         onClick={() => onEdit(logement)}
-                        className="text-indigo-600 hover:text-indigo-900"
+                        disabled={loadingEdit}
+                        className="text-indigo-600 hover:text-indigo-900 disabled:text-gray-400 disabled:cursor-not-allowed"
                       >
-                        Modifier
+                        {loadingEdit ? 'Chargement...' : 'Modifier'}
                       </button>
                       <select
                         value={logement.statut}

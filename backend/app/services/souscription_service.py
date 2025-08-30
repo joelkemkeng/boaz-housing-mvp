@@ -1,7 +1,7 @@
 import secrets
 import string
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.souscription import Souscription, StatutSouscription
 from app.models.logement import Logement, StatutLogement
 from app.schemas.souscription import SouscriptionCreate, SouscriptionUpdate
@@ -41,14 +41,14 @@ class SouscriptionService:
     def get_souscriptions(self, db: Session, skip: int = 0, limit: int = 100, 
                          statut: Optional[StatutSouscription] = None) -> List[Souscription]:
         """Récupérer la liste des souscriptions"""
-        query = db.query(Souscription)
+        query = db.query(Souscription).options(joinedload(Souscription.logement))
         if statut:
             query = query.filter(Souscription.statut == statut)
         return query.offset(skip).limit(limit).all()
     
     def get_souscription(self, db: Session, souscription_id: int) -> Optional[Souscription]:
         """Récupérer une souscription par ID"""
-        return db.query(Souscription).filter(Souscription.id == souscription_id).first()
+        return db.query(Souscription).options(joinedload(Souscription.logement)).filter(Souscription.id == souscription_id).first()
     
     def update_souscription(self, db: Session, souscription_id: int, 
                            souscription_update: SouscriptionUpdate) -> Souscription:
@@ -61,8 +61,18 @@ class SouscriptionService:
         if db_souscription.statut in [StatutSouscription.PAYE, StatutSouscription.LIVRE, StatutSouscription.CLOTURE]:
             raise ValueError("Modification interdite pour les souscriptions payées")
         
-        # Mettre à jour les champs
+        # Vérifier le nouveau logement s'il est fourni
         update_data = souscription_update.dict(exclude_unset=True)
+        if 'logement_id' in update_data:
+            nouveau_logement_id = update_data['logement_id']
+            if nouveau_logement_id != db_souscription.logement_id:
+                logement = db.query(Logement).filter(Logement.id == nouveau_logement_id).first()
+                if not logement:
+                    raise ValueError("Nouveau logement non trouvé")
+                if logement.statut != StatutLogement.DISPONIBLE:
+                    raise ValueError("Nouveau logement non disponible")
+        
+        # Mettre à jour les champs
         for field, value in update_data.items():
             setattr(db_souscription, field, value)
         

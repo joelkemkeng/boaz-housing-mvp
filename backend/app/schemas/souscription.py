@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date, datetime
 from app.models.souscription import StatutSouscription
+from app.schemas.logement import LogementResponse
 
 class SouscriptionBase(BaseModel):
     nom_client: str
@@ -48,6 +49,7 @@ class SouscriptionUpdate(BaseModel):
     code_postal_ecole: Optional[str] = None
     adresse_ecole: Optional[str] = None
     
+    logement_id: Optional[int] = None
     date_entree_prevue: Optional[date] = None
     duree_location_mois: Optional[int] = None
 
@@ -57,6 +59,7 @@ class SouscriptionResponse(SouscriptionBase):
     statut: StatutSouscription
     created_at: datetime
     updated_at: Optional[datetime]
+    logement: Optional[LogementResponse] = None
     
     class Config:
         from_attributes = True
