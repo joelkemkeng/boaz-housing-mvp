@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import LogementList from '../components/LogementList';
 import LogementForm from '../components/LogementForm';
 import LogementStats from '../components/LogementStats';
+import LogementDetailModal from '../components/LogementDetailModal';
 
 const LogementsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedLogement, setSelectedLogement] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [logementToView, setLogementToView] = useState(null);
 
   const handleNewLogement = () => {
     setSelectedLogement(null);
@@ -22,8 +25,8 @@ const LogementsPage = () => {
   };
 
   const handleViewLogement = (logement) => {
-    const description = logement.description ? `\nDescription: ${logement.description}` : '';
-    alert(`Détails du logement:\n\nTitre: ${logement.titre}${description}\nAdresse: ${logement.adresse}\nVille: ${logement.ville}\nCode postal: ${logement.code_postal}\nPays: ${logement.pays}\nLoyer: ${logement.loyer}€\nStatut: ${logement.statut}\n\nCréé le: ${new Date(logement.created_at).toLocaleDateString('fr-FR')}`);
+    setLogementToView(logement);
+    setShowDetailModal(true);
   };
 
   const handleFormSave = (logement) => {
@@ -42,9 +45,14 @@ const LogementsPage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setLogementToView(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -88,6 +96,13 @@ const LogementsPage = () => {
             isEdit={isEdit}
           />
         )}
+
+        {/* Modal de détail */}
+        <LogementDetailModal
+          logement={logementToView}
+          show={showDetailModal}
+          onClose={handleCloseDetailModal}
+        />
       </div>
     </div>
   );

@@ -28,15 +28,21 @@ RUN pip install --no-cache-dir --upgrade pip && \
 FROM base as development
 RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY . .
-RUN chown -R appuser:appuser /app
+# Rendre le script entrypoint exécutable AVANT le changement d'utilisateur
+RUN chmod +x entrypoint.sh && \
+    chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8000
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Target production
 FROM base as production
 COPY . .
-RUN chown -R appuser:appuser /app
+# Rendre le script entrypoint exécutable AVANT le changement d'utilisateur
+RUN chmod +x entrypoint.sh && \
+    chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8000
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

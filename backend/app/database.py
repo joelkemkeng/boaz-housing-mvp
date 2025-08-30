@@ -6,7 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://admin:admin@boaz-postgres:5432/boaz_housing_db")
+# Utiliser une base de données différente pour les tests
+if os.getenv("TESTING"):
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://admin:admin@boaz-postgres:5432/boaz_housing_db").replace("/boaz_housing_mvp", "/boaz_housing_test")
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://admin:admin@boaz-postgres:5432/boaz_housing_db")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
