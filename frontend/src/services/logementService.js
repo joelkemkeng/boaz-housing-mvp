@@ -84,3 +84,9 @@ export class LogementService {
 }
 
 export const logementService = new LogementService();
+
+// Exports directs pour compatibilité
+export const getLogementsDisponibles = () => logementService.getLogementsDisponibles();
+export const getLogements = (params) => logementService.getLogements(params);
+export const getLogement = (id) => logementService.getLogement(id);
+export const getStatsLogements = () => logementService.getStatsLogements();

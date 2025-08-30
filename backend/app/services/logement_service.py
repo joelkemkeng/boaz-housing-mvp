@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.models.logement import Logement, StatutLogement
@@ -125,10 +126,10 @@ class LogementService:
         if ville:
             query = query.filter(Logement.ville.ilike(f"%{ville}%"))
         
-        # Tri par date de modification/création (plus récent en premier)
+        # Tri : dernière activité en premier (création OU modification)
+        # COALESCE prend updated_at si présent, sinon created_at
         query = query.order_by(
-            Logement.updated_at.desc().nulls_last(),
-            Logement.created_at.desc()
+            func.coalesce(Logement.updated_at, Logement.created_at).desc()
         )
         
         return query.offset(skip).limit(limit).all()
