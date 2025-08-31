@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attestation de logement</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Segoe UI", "Arial", sans-serif;
+            margin: 0;
+            padding: 10px;
+            line-height: 1.4;
+            color: #2c3e50;
+            font-size: 10pt;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .document-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .document-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #f88206;
+        }
+        
+        .header {
+            background: #ffffff;
+            color: #2c3e50;
+            padding: 8px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: #0140ff;
+        }
+        
+        .logo-section {
+            margin-bottom: 5px;
+        }
+        
+        .logo-placeholder {
+            width: 45px;
+            height: 45px;
+            background: #f8f9fa;
+            border: 2px solid #0140ff;
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #0140ff;
+            font-weight: 600;
+        }
+        
+        .company-name {
+            font-size: 12pt;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            color: #2c3e50;
+        }
+        
+        .company-tagline {
+            font-size: 8pt;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .title-section {
+            background: #ecf0f1;
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .document-title {
+            font-size: 16pt;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .document-title::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: #f88206;
+        }
+        
+        .content-section {
+            padding: 15px;
+        }
+        
+        .intro-paragraph {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #0140ff;
+            margin-bottom: 12px;
+            border-radius: 0 4px 4px 0;
+            font-size: 9pt;
+            color: #5a6c7d;
+        }
+        
+        .attestation-content {
+            margin-bottom: 12px;
+        }
+        
+        .attestation-content p {
+            margin: 8px 0;
+            text-align: justify;
+            color: #34495e;
+        }
+        
+        .highlight-box {
+            background: #fafbff;
+            border: 1px solid #0140ff;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: '📍';
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            background: #0140ff;
+            color: white;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        
+        .address-info {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 11pt;
+            text-align: center;
+        }
+        
+        .rental-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 8px 0;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 9pt;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .signature-section {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 2px dashed #bdc3c7;
+        }
+        
+        .signature-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+            margin: 0 auto;
+            gap: 50px;
+        }
+        
+        .qr-section {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .qr-placeholder {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-size: 7pt;
+            color: #7f8c8d;
+            text-align: center;
+            line-height: 1.0;
+        }
+        
+        .signature-details {
+            flex: 1;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .signature-placeholder {
+            width: 100px;
+            height: 40px;
+            background: #f8f9fa;
+            border: 1px dashed #bdc3c7;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0 8px auto;
+            font-size: 7pt;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .company-info {
+            font-size: 8pt;
+            color: #5a6c7d;
+            line-height: 1.3;
+        }
+        
+        .footer {
+            background: #ffffff;
+            color: #2c3e50;
+            padding: 10px;
+            text-align: center;
+            margin-top: 12px;
+            border-top: 1px solid #e8e8e8;
+        }
+        
+        .reference-info {
+            display: flex;
+            justify-content: center;
+            font-size: 8pt;
+        }
+        
+        .contact-person, .document-ref {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+        }
+        
+        .contact-person h4, .document-ref h4 {
+            margin: 0 0 5px 0;
+            color: #f88206;
+            font-size: 8pt;
+        }
+        
+        .validity-notice {
+            margin-top: 8px;
+            padding: 8px;
+            background: #fff5f0;
+            border: 1px solid #f88206;
+            border-radius: 4px;
+            font-size: 7pt;
+            color: #d35400;
+            text-align: center;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                font-size: 9pt;
+                line-height: 1.3;
+            }
+            .document-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: none;
+                margin: 0;
+            }
+            .validity-notice {
+                background: #f8f8f8;
+                border: 1px solid #ddd;
+            }
+            .header, .title-section, .content-section, .footer {
+                page-break-inside: avoid;
+            }
+            .attestation-content p {
+                orphans: 2;
+                widows: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document-container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-placeholder">LF</div>
+                <div class="company-name">{Nom_organisation}</div>
+                <div class="company-tagline">Votre partenaire logement en France</div>
+            </div>
+        </header>
+
+        <section class="title-section">
+            <h1 class="document-title">Attestation de logement</h1>
+        </section>
+
+        <main class="content-section">
+            <div class="intro-paragraph">
+                <strong>{site_organisation}</strong> est un site web exploité par <strong>{Nom_complet_organisation}</strong>, une entreprise de l'économie sociale et solidaire qui a pour objet social l'insertion sociale, scolaire et professionnelle des étrangers en France.
+            </div>
+
+            <div class="attestation-content">
+                <p><strong>{Nom_complet_ceo}</strong>, né le {date_naissance_ceo} à {ville_naissance_ceo} en {pays_naissance_ceo}, président de la société {Nom_complet_organisation} exploitant le site web {site_organisation}, dont le siège social est situé au {adresse_organisation}, inscrite au R.C.S. de Lille Métropole sous le numéro {numero_rcs_organisation}, code NAF : {code_naf_organisation}, <strong>atteste sur l'honneur que :</strong></p>
+
+                <p><strong>{Nom_complet_client}</strong> née le {date_naissance_client} à Douala, Cameroun, logera dans l'un des logements proposés par la plateforme {site_organisation} situé à l'adresse ci-dessous :</p>
+
+                <div class="highlight-box">
+                    <div class="address-info">
+                        {adresse_logement}
+                    </div>
+                    <div class="rental-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Loyer mensuel</div>
+                            <div class="detail-value">{montant_loyer_logement} €</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Date d'entrée</div>
+                            <div class="detail-value">{date_entree_logement}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item" style="grid-column: 1/-1; margin-top: 5px;">
+                        <div class="detail-label">Durée de location estimée</div>
+                        <div class="detail-value">{duree_location_souscription}</div>
+                    </div>
+                </div>
+
+                <p>Nous restons à votre disposition pour tout complément d'information. Ce document ne peut être revendu.</p>
+            </div>
+
+            <div class="signature-section">
+                <div class="signature-container">
+                    <div class="qr-section">
+                        <div class="qr-placeholder">
+                            QR Code<br>Vérification
+                        </div>
+                        <div style="font-size: 8pt; color: #7f8c8d;">Code de vérification</div>
+                    </div>
+
+                    <div class="signature-details">
+                        <p style="margin-bottom: 5px; font-weight: 600;">Fait à {ville_organisation} en {pays_organisation}</p>
+                        <p style="margin-bottom: 20px; color: #7f8c8d;">Le {date_emission_document}</p>
+                        
+                        <div class="signature-placeholder">
+                            Signature électronique
+                        </div>
+
+                        <div class="company-info">
+                            <strong>{Nom_complet_organisation}</strong><br>
+                            {numero_rcs_organisation} R.C.S. Lille Métropole<br>
+                            {email_contact_organisation}<br>
+                            {adresse_organisation}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="reference-info">
+                <div class="document-ref">
+                    <h4>📄 Référence du document</h4>
+                    <p><strong>{reference_document}</strong></p>
+                </div>
+            </div>
+
+            <div class="validity-notice">
+                ⚠️ <strong>IMPORTANT :</strong> Cette attestation est valide pendant {duree_validite_document} jours après la date d'émission
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

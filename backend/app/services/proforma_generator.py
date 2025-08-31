@@ -379,10 +379,10 @@ def get_html_template():
                         <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" class="logo">
                     </div>
                     <div class="company-info">
-                        <h2>Boaz Study Cameroun SAS</h2>
-                        <p>Yaoundé Total Ecole de Police - Tel: (+237) 658 870 473</p>
-                        <p>389 Rue Toyota Bonapriso, B.P: 1230 Douala - Tel: (+237) 694 186 936</p>
-                        <p>Email: info@boaz-study.com | Web: www.boaz-study.com</p>
+                        <h2>{{ organisation.nom_complet }}</h2>
+                        <p>{{ organisation.description }} - Tel: {{ organisation.telephone }}</p>
+                        <p>{{ organisation.adresse }}</p>
+                        <p>Email: {{ organisation.email }} | Web: {{ organisation.site_web }}</p>
                     </div>
                 </div>
             </div>
@@ -403,7 +403,7 @@ def get_html_template():
         <div class="details-grid">
             <div class="details-column">
                 <h3>Coordonnées Bancaires</h3>
-                <p><strong>Payable à :</strong> BOAZ STUDY CAMEROUN</p>
+                <p><strong>Payable à :</strong> {{ organisation.nom_complet }}</p>
                 {% for bank in banks %}
                 <p><strong>Banque :</strong> {{ bank.bank_name }}</p>
                 {% if bank.iban %}
@@ -424,7 +424,6 @@ def get_html_template():
             <div class="details-column customer-column">
                 <h3>Facturé à</h3>
                 <p><strong>{{ customer.name }}</strong></p>
-                <p><strong>Adresse :</strong> {{ customer.address }}</p>
                 <p><strong>Mail :</strong> {{ customer.email }}</p>
                 {% if customer.phone %}
                 <p><strong>Téléphone :</strong> {{ customer.phone }}</p>
@@ -543,6 +542,7 @@ def generate_pdf_from_html(proforma_data: dict, output_path: str):
             customer=proforma_data.get('customer', {}),
             items=proforma_data.get('items', []),
             banks=proforma_data.get('banks', []),
+            organisation=proforma_data.get('organisation', {}),
             date=proforma_data.get('date', ''),
             invoice_number=proforma_data.get('invoice_number', ''),
             total_ht=proforma_data.get('total_ht', 0),
@@ -705,37 +705,40 @@ class ProformaGenerator:
                 'amount': service.get('tarif', 0)
             })
         
-        # Banques par défaut comme dans le code de référence
-        default_banks = [
-            {
-                "bank_name": "SOCIETE GENERALE CAMEROUN",
-                "iban": "CM21 1000 3001 0006 0110 7319 526"
-            },
-            {
-                "bank_name": "BANQUE ATLANTIQUE", 
-                "swift_code": "ATCRCMCM",
-                "account_number": "00012750501"
+        # Banques dynamiques depuis organisation_data
+        banks_data = organisation_data.get('informations_bancaires', [])
+        dynamic_banks = []
+        for bank in banks_data:
+            bank_info = {
+                "bank_name": bank.get('description', ''),
             }
-        ]
+            if bank.get('iban'):
+                bank_info["iban"] = bank.get('iban')
+            if bank.get('code_swift'):
+                bank_info["swift_code"] = bank.get('code_swift')
+            if bank.get('numero_compte'):
+                bank_info["account_number"] = bank.get('numero_compte')
+            dynamic_banks.append(bank_info)
 
-        # Préparation du customer exactement comme dans le code de référence
+        # Préparation du customer - mapping des champs frontend vers backend
         customer_data = {
-            'name': f"{client_data.get('prenom_client', '')} {client_data.get('nom_client', '')}".strip(),
+            'name': f"{client_data.get('prenom', client_data.get('prenom_client', ''))} {client_data.get('nom', client_data.get('nom_client', ''))}".strip(),
             'address': f"{logement_data.get('adresse', '')}, {logement_data.get('ville', '')}" if logement_data else '',
-            'email': client_data.get('email_client', '')
+            'email': client_data.get('email', client_data.get('email_client', ''))
         }
 
-        # Données du template exactement comme le code de référence
+        # Données du template avec informations dynamiques
         template_data = {
             'customer': customer_data,
             'items': items,
-            'banks': default_banks,
+            'banks': dynamic_banks,
+            'organisation': organisation_data,
             'date': datetime.now().strftime('%d/%m/%Y'),
             'invoice_number': numero_proforma,
             'total_ht': total_ht,
             'total_ttc': total_ttc,
-            'notes': "RECOMMANDEZ-NOUS ET RECEVEZ 25000 FCFA",
-            'terms': ''
+            'notes': organisation_data.get('mentions_legales', {}).get('recommandations', "RECOMMANDEZ-NOUS ET RECEVEZ 25000 FCFA"),
+            'terms': organisation_data.get('mentions_legales', {}).get('conditions_paiement', '')
         }
         
         return template_data

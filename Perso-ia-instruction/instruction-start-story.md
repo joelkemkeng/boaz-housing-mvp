@@ -81,3 +81,16 @@ je veux que tu fais le service de generation de pdf , avec ce code qui est tres 
 │   surtout ne complique pas les chose , comme je t'ai toujour dit , nous somme en MVP , rassure toi juste de la      │
 │   bonne jestion des erreur et que ce soit solide , tu as mes autorisation pour effectuer les tests sans me          │
 │   demander si tu execute les requette ou pas , considerer que je ne suis pas la , et tu fais de maniere autonome  
+
+
+
+
+
+
+
+
+
+afin de tester et voir l'attestation de logement dans de bonne condition , ajoute un bouton provisoir dans la liste de souscription " 
+  preview attestation" en cliquant dessus, il doit generer l'attestion de logement et faire voir en preview , pour que je puisse voir a quoi
+   il ressemble , une  fois que je valides la forme , on pourra retirer le bouton , et le faire generer apres avoir payer (appuyer sur le 
+  bouton payer " ..etc ,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSouscriptions, deleteSouscription, changerStatutSouscription } from '../../services/souscriptionService';
+import { previewAttestation, previewPdf } from '../../services/proformaService';
 import WizardSouscription from './WizardSouscription';
 import SouscriptionViewModal from './SouscriptionViewModal';
 
@@ -70,6 +71,19 @@ const HistoriqueSection = ({ onDataChange }) => {
       } catch (error) {
         alert('Erreur lors de la suppression: ' + error.message);
       }
+    }
+  };
+
+  const handlePreviewAttestation = async (souscription) => {
+    try {
+      const result = await previewAttestation(souscription.id);
+      if (result.success) {
+        previewPdf(result.pdfUrl);
+      } else {
+        alert('Erreur lors de la génération: ' + result.error);
+      }
+    } catch (error) {
+      alert('Erreur lors de la génération de l\'attestation: ' + error.message);
     }
   };
 
@@ -232,6 +246,15 @@ const HistoriqueSection = ({ onDataChange }) => {
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={() => handlePreviewAttestation(souscription)}
+                          className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                          </svg>
+                          Preview Attestation
+                        </button>
                         <button
                           onClick={() => handleDelete(souscription)}
                           className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"

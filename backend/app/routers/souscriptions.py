@@ -7,6 +7,7 @@ from app.database import get_db
 from app.schemas.souscription import SouscriptionCreate, SouscriptionUpdate, SouscriptionResponse, StatutUpdate
 from app.services.souscription_service import souscription_service
 from app.services.proforma_generator import ProformaGenerator
+from app.services.attestation_generator import AttestationGenerator
 from app.services.services_data import ServicesDataService
 from app.models.souscription import StatutSouscription
 from pydantic import BaseModel
@@ -182,4 +183,88 @@ def generate_proforma(
         raise HTTPException(
             status_code=500,
             detail=f"Erreur lors de la génération de la proforma: {str(e)}"
+        )
+
+@router.post("/{souscription_id}/generate-attestation")
+def generate_attestation(
+    souscription_id: int,
+    db: Session = Depends(get_db)
+):
+    """Générer l'attestation de logement et prise en charge PDF (2 pages)"""
+    try:
+        # Récupérer la souscription avec toutes les données liées
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # NOTE: Validation temporairement désactivée pour les tests de preview
+        # Vérifier que la souscription est payée (statut >= "paye")
+        # if db_souscription.statut not in [StatutSouscription.PAYE, StatutSouscription.LIVRE, StatutSouscription.CLOTURE]:
+        #     raise HTTPException(
+        #         status_code=400, 
+        #         detail="L'attestation ne peut être générée que pour les souscriptions payées"
+        #     )
+        
+        # Initialiser les services
+        attestation_generator = AttestationGenerator()
+        services_data_service = ServicesDataService()
+        
+        # Récupérer les détails de l'organisation
+        organisation_data = services_data_service.get_organisation_details()
+        if not organisation_data:
+            raise HTTPException(status_code=500, detail="Détails de l'organisation non disponibles")
+        
+        # Préparer les données client
+        client_data = {
+            'nom': db_souscription.nom_client,
+            'prenom': db_souscription.prenom_client,
+            'date_naissance': db_souscription.date_naissance_client.strftime('%d/%m/%Y') if db_souscription.date_naissance_client else '',
+            'ville_naissance_client': db_souscription.ville_naissance_client,
+            'pays_naissance_client': db_souscription.pays_naissance_client
+        }
+        
+        # Préparer les données logement
+        if not db_souscription.logement:
+            raise HTTPException(status_code=400, detail="Aucun logement associé à cette souscription")
+            
+        logement_data = {
+            'adresse': db_souscription.logement.adresse,
+            'ville': db_souscription.logement.ville,
+            'pays': db_souscription.logement.pays,
+            'prix_mois': db_souscription.logement.loyer,
+            'caution': db_souscription.logement.montant_charges
+        }
+        
+        # Préparer les données souscription
+        souscription_data = {
+            'date_entree_prevue': db_souscription.date_entree_prevue.strftime('%d/%m/%Y') if db_souscription.date_entree_prevue else '',
+            'duree_location_mois': db_souscription.duree_location_mois
+        }
+        
+        # Générer l'attestation PDF
+        pdf_path = attestation_generator.generate_attestation(
+            client_data=client_data,
+            logement_data=logement_data,
+            souscription_data=souscription_data,
+            organisation_data=organisation_data,
+            reference=db_souscription.reference
+        )
+        
+        # Vérifier que le fichier a été créé
+        if not os.path.exists(pdf_path):
+            raise HTTPException(status_code=500, detail="Erreur lors de la génération de l'attestation PDF")
+        
+        # Retourner le fichier PDF
+        return FileResponse(
+            path=pdf_path,
+            filename=f"Attestation_{db_souscription.reference}.pdf",
+            media_type="application/pdf"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la génération de l'attestation: {str(e)}"
         )

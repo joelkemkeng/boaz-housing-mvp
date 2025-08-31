@@ -86,3 +86,58 @@ export const previewPdf = (pdfUrl) => {
     throw new Error('Erreur lors de l\'ouverture de la prévisualisation');
   }
 };
+
+export const previewAttestation = async (souscriptionId) => {
+  try {
+    const response = await api.post(`${PROFORMA_BASE_URL}/${souscriptionId}/generate-attestation`, {}, {
+      responseType: 'blob', // Important pour recevoir le PDF
+      headers: {
+        'Accept': 'application/pdf'
+      }
+    });
+    
+    // Créer un blob URL pour le PDF
+    const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+    const pdfUrl = window.URL.createObjectURL(pdfBlob);
+    
+    return {
+      success: true,
+      pdfUrl: pdfUrl,
+      pdfBlob: pdfBlob,
+      filename: `attestation_preview_${souscriptionId}.pdf`
+    };
+    
+  } catch (error) {
+    console.error('Erreur lors de la génération de l\'attestation:', error);
+    
+    let errorMessage = 'Erreur lors de la génération de l\'attestation';
+    
+    if (error.response) {
+      // Si l'erreur contient du JSON dans un blob
+      if (error.response.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text();
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          errorMessage = 'Erreur serveur lors de la génération';
+        }
+      } else if (error.response.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response.status === 400) {
+        errorMessage = 'Souscription non éligible pour l\'attestation';
+      } else if (error.response.status === 404) {
+        errorMessage = 'Souscription non trouvée';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Erreur interne du serveur';
+      }
+    } else if (error.request) {
+      errorMessage = 'Impossible de contacter le serveur';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage
+    };
+  }
+};

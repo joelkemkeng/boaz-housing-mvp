@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createSouscription, updateSouscription } from '../../services/souscriptionService';
 import { getLogementsDisponibles } from '../../services/logementService';
 import { generateProforma, downloadPdf, previewPdf } from '../../services/proformaService';
@@ -61,6 +61,40 @@ const WizardSouscription = ({ souscriptionToEdit, onComplete, onCancel }) => {
       };
     }
   });
+
+  // Auto-chargement des logements à l'étape 3 et des services/logements à l'étape 4
+  useEffect(() => {
+    if (currentStep === 3) {
+      // Charger les logements automatiquement à l'étape 3
+      if (logements.length === 0) {
+        loadLogements();
+      }
+    } else if (currentStep === 4) {
+      // Charger les données si nécessaire à l'étape 4
+      if (services.length === 0) {
+        loadServices();
+      }
+      if (logements.length === 0) {
+        loadLogements();
+      }
+    }
+  }, [currentStep]);
+
+  // Déclencher la génération automatique quand les données sont prêtes à l'étape 4
+  useEffect(() => {
+    if (currentStep === 4 && services.length > 0 && logements.length > 0) {
+      const selectedLogement = logements.find(l => l.id === parseInt(formData.logement_id));
+      
+      if (!proformaData && !proformaLoading && selectedServices.length > 0 && selectedLogement) {
+        // Petite temporisation pour éviter les appels trop rapides
+        const timer = setTimeout(() => {
+          handleGenerateProforma();
+        }, 300);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentStep, services.length, logements.length, proformaData, proformaLoading, selectedServices.length, formData.logement_id]);
 
   const loadLogements = async () => {
     if (loading) return;
@@ -315,15 +349,19 @@ const WizardSouscription = ({ souscriptionToEdit, onComplete, onCancel }) => {
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-800 mb-6">Choix du Logement</h3>
       
-      {logements.length === 0 ? (
+      {loading ? (
         <div className="text-center py-8">
-          <button
-            onClick={loadLogements}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Chargement...' : 'Charger les logements'}
-          </button>
+          <SpinLoader size="lg" text="Chargement des logements disponibles..." />
+        </div>
+      ) : logements.length === 0 ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500">
+            <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <p className="text-lg font-medium mb-2">Aucun logement disponible</p>
+            <p className="text-sm">Aucun logement n'a été trouvé pour le moment.</p>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -459,7 +497,7 @@ const WizardSouscription = ({ souscriptionToEdit, onComplete, onCancel }) => {
 
     return (
       <div className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-6">Génération de Proforma</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">Récapitulatif et Proforma</h3>
         
         {/* Récapitulatif */}
         <div className="bg-gradient-to-r from-blue-50 to-orange-50 rounded-lg p-6 border border-blue-200">
@@ -476,60 +514,19 @@ const WizardSouscription = ({ souscriptionToEdit, onComplete, onCancel }) => {
               <p><strong>Arrivée prévue:</strong> {formData.date_arrivee_prevue}</p>
             </div>
           </div>
-        </div>
-
-        {/* Sélection des services */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h4 className="font-semibold text-gray-800 mb-4">Services à inclure dans la proforma</h4>
-          <div className="space-y-3">
-            {services.map((service) => (
-              <div key={service.id} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  id={`service-${service.id}`}
-                  checked={selectedServices.includes(service.id)}
-                  onChange={() => handleServiceToggle(service.id)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor={`service-${service.id}`} className="ml-3 flex-1 cursor-pointer">
-                  <div className="font-medium text-gray-800">{service.nom}</div>
-                  <div className="text-sm text-gray-600">{service.description}</div>
-                  <div className="text-sm font-semibold text-blue-600">
-                    {new Intl.NumberFormat('fr-FR').format(service.tarif)} FCFA
-                  </div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Détail des coûts */}
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h4 className="font-semibold text-gray-800 mb-4">Estimation des Coûts</h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Services sélectionnés:</span>
-              <span className="font-semibold">{new Intl.NumberFormat('fr-FR').format(totalServices)} FCFA</span>
+          {selectedLogement && (
+            <div className="mt-4 pt-4 border-t border-blue-200">
+              <p><strong>Logement:</strong> {selectedLogement.type_logement} - {selectedLogement.ville}</p>
+              <p><strong>Adresse:</strong> {selectedLogement.adresse}</p>
             </div>
-            {selectedLogement && (
-              <>
-                <div className="flex justify-between">
-                  <span>Logement ({selectedLogement.type_logement}):</span>
-                  <span className="font-semibold">{new Intl.NumberFormat('fr-FR').format(totalLogement)} FCFA</span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between text-lg font-bold text-blue-600">
-                  <span>Total Général:</span>
-                  <span>{new Intl.NumberFormat('fr-FR').format(totalGeneral)} FCFA</span>
-                </div>
-              </>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Actions proforma */}
+
+
+        {/* Section Proforma */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h4 className="font-semibold text-gray-800 mb-4">Génération de Proforma</h4>
+          <h4 className="font-semibold text-gray-800 mb-4">Proforma</h4>
           
           {proformaLoading ? (
             <div className="text-center py-8">
@@ -560,20 +557,20 @@ const WizardSouscription = ({ souscriptionToEdit, onComplete, onCancel }) => {
               </div>
             </div>
           ) : (
-            <button
-              onClick={handleGenerateProforma}
-              disabled={selectedServices.length === 0 || !formData.logement_id}
-              className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              🚀 Générer la Proforma
-            </button>
-          )}
-          
-          {selectedServices.length === 0 && (
-            <p className="text-orange-600 text-sm mt-2">Veuillez sélectionner au moins un service</p>
-          )}
-          {!formData.logement_id && (
-            <p className="text-orange-600 text-sm mt-2">Veuillez sélectionner un logement à l'étape 3</p>
+            <div className="text-center py-8">
+              <div className="text-gray-500 mb-4">
+                <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p>Une erreur est survenue lors de la génération automatique de la proforma.</p>
+              </div>
+              <button
+                onClick={handleGenerateProforma}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200"
+              >
+                🔄 Régénérer la Proforma
+              </button>
+            </div>
           )}
         </div>
       </div>
