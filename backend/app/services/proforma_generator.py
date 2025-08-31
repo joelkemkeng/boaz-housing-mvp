@@ -38,16 +38,17 @@ def get_html_template():
             color: #333333;
             font-size: 11px;
             line-height: 1.5;
-            padding: 15mm;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Container principal avec hauteur complète */
+        /* Container principal avec hauteur complète sans marge haute */
         .invoice-container {
             width: 210mm;
             max-width: 210mm;
-            min-height: 267mm; /* Hauteur A4 moins marges */
-            margin: 0 auto;
-            padding: 25px;
+            min-height: 297mm; /* Hauteur A4 complète */
+            margin: 0;
+            padding: 20px 25px 25px 25px; /* Pas de padding-top pour commencer tout en haut */
             background-color: #ffffff;
             border: 2px solid #0140FF;
             border-radius: 10px;
@@ -55,54 +56,71 @@ def get_html_template():
             box-shadow: 0 2px 10px rgba(1, 64, 255, 0.1);
         }
 
-        /* Header professionnel */
+        /* Header professionnel - Table Layout pour alignement horizontal garanti */
         .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
             background-color: #f8f9fb;
             padding: 25px;
             border-radius: 8px;
+            margin-top: 5px;
             margin-bottom: 25px;
             border-top: 4px solid #0140FF;
             border-left: 2px solid #F88206;
         }
 
-        .logo-company-info {
+        .left-section {
+            /* Section gauche : logo + infos entreprise - Cell de table */
+            display: table-cell;
+            width: 65%;
+            vertical-align: top;
+            padding-right: 20px;
+        }
+
+        .left-section-inner {
+            /* Contenu interne de la section gauche */
             display: flex;
             align-items: flex-start;
-            flex: 1;
+            gap: 20px;
         }
 
         .logo-section {
-            margin-right: 25px;
+            flex-shrink: 0;
         }
 
         .logo {
-            width: 130px;
+            width: 120px;
             height: auto;
             border-radius: 5px;
+        }
+
+        .company-info {
+            flex: 1;
         }
 
         .company-info h2 {
             font-size: 15px;
             font-weight: 700;
             color: #0140FF;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             letter-spacing: 0.3px;
         }
 
         .company-info p {
             font-size: 10px;
             color: #555;
-            margin-bottom: 4px;
-            line-height: 1.4;
+            margin-bottom: 3px;
+            line-height: 1.3;
         }
 
         .invoice-title-section {
+            /* Section FACTURE - Cell de table pour alignement horizontal garanti */
+            display: table-cell;
+            width: 35%;
+            vertical-align: top;
             text-align: right;
-            flex-shrink: 0;
-            background-color: rgba(1, 64, 255, 0.85);
+            background-color: rgba(1, 64, 255, 0.75);
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
@@ -183,7 +201,7 @@ def get_html_template():
         }
 
         .services-table thead th {
-            background-color: rgba(1, 64, 255, 0.9);
+            background-color: rgba(1, 64, 255, 0.8);
             color: white;
             font-size: 11px;
             font-weight: 700;
@@ -292,28 +310,42 @@ def get_html_template():
         }
 
         .stamp {
-            width: 140px;
+            width: 200px;
             height: auto;
-            transform: rotate(-8deg); /* Exactement -8° comme demandé */
-            margin: 8px 0;
+            transform: rotate(-10deg);
+            transform-origin: center center;
+            -webkit-transform: rotate(-10deg);
+            -moz-transform: rotate(-10deg);
+            -ms-transform: rotate(-10deg);
+            -o-transform: rotate(-10deg);
+            margin: 15px 0;
             filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+            display: inline-block;
         }
 
-        /* Footer informatif */
+        /* Footer informatif - Très très bas et centré */
         .footer {
-            position: absolute;
-            bottom: 20px;
-            left: 25px;
-            right: 25px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
             background-color: #f8f9fb;
             border-top: 3px solid #0140FF;
             border-left: 2px solid #F88206;
-            padding: 15px;
+            border-right: 2px solid #F88206;
+            padding: 12px 0;
             font-size: 9px;
             color: #666;
-            text-align: justify;
+            text-align: center; /* Centré par rapport au corps */
             line-height: 1.4;
-            border-radius: 6px;
+            z-index: 100;
+        }
+        
+        .footer-content {
+            max-width: 80%;
+            margin: 0 auto; /* Centrer le contenu par rapport au corps */
+            padding: 0 20px;
         }
 
         /* Responsive et impression */
@@ -338,19 +370,24 @@ def get_html_template():
 <body>
     <div class="invoice-container">
         
-        <!-- Header moderne avec logo Boaz Housing -->
+        <!-- Header moderne - Table Layout pour alignement horizontal garanti -->
         <div class="header-section">
-            <div class="logo-company-info">
-                <div class="logo-section">
-                    <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" class="logo">
-                </div>
-                <div class="company-info">
-                    <h2>Boaz Study Cameroun SAS</h2>
-                    <p>Yaoundé Total Ecole de Police - Tel: (+237) 658 870 473</p>
-                    <p>389 Rue Toyota Bonapriso, B.P: 1230 Douala - Tel: (+237) 694 186 936</p>
-                    <p>Email: info@boaz-study.com | Web: www.boaz-study.com</p>
+            <!-- Section gauche: Logo + Infos entreprise (Table Cell) -->
+            <div class="left-section">
+                <div class="left-section-inner">
+                    <div class="logo-section">
+                        <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" class="logo">
+                    </div>
+                    <div class="company-info">
+                        <h2>Boaz Study Cameroun SAS</h2>
+                        <p>Yaoundé Total Ecole de Police - Tel: (+237) 658 870 473</p>
+                        <p>389 Rue Toyota Bonapriso, B.P: 1230 Douala - Tel: (+237) 694 186 936</p>
+                        <p>Email: info@boaz-study.com | Web: www.boaz-study.com</p>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Section droite: FACTURE (Table Cell) - Alignement horizontal garanti -->
             <div class="invoice-title-section">
                 <h1 class="invoice-title">FACTURE</h1>
                 <div class="invoice-meta">
@@ -534,7 +571,7 @@ def generate_pdf_from_html(proforma_data: dict, output_path: str):
             cmd = [
                 wkhtmltopdf_path,
                 #'--page-size', 'A4',
-                # '--margin-top', '5mm',
+                '--margin-top', '0.2mm',
                 # '--margin-right', '5mm', 
                 # '--margin-bottom', '5mm',
                 # '--margin-left', '5mm',
@@ -542,14 +579,14 @@ def generate_pdf_from_html(proforma_data: dict, output_path: str):
                 '--enable-local-file-access',
                 # '--disable-smart-shrinking',
                 # '--zoom', '1.0',
-                '--dpi', '300',
-                '--image-dpi', '300',
-                '--javascript-delay', '1000',
-                '--no-stop-slow-scripts',
+                #'--dpi', '300',
+                #'--image-dpi', '300',
+                #'--javascript-delay', '1000',
+                #'--no-stop-slow-scripts',
                 #'--disable-javascript',
                 '--print-media-type',
-                '--no-outline',
-                '--quiet',
+                #'--no-outline',
+                #'--quiet',
                 
                 temp_html_path,
                 output_path
