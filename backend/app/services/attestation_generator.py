@@ -243,18 +243,22 @@ def get_attestation_html_template():
         }
         
         .rental-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            display: table;
+            table-layout: fixed;
+            width: 100%;
             margin: 15px 0;
+            border-spacing: 12px 0;
         }
         
         .detail-item {
+            display: table-cell;
+            width: 50%;
             background: white;
             padding: 12px;
             border-radius: 4px;
             border: 1px solid #e8e8e8;
             text-align: center;
+            vertical-align: top;
         }
         
         .detail-label {
@@ -294,8 +298,8 @@ def get_attestation_html_template():
         }
         
         .qr-placeholder {
-            width: 120px;
-            height: 120px;
+            width: 160px;
+            height: 160px;
             background: #f8f9fa;
             border: 2px dashed #bdc3c7;
             border-radius: 8px;
@@ -407,7 +411,7 @@ def get_attestation_html_template():
     <div class="document-container">
         <header class="header">
             <div class="logo-section">
-                <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" style="width: 200px; height: auto; margin-bottom: 10px;">
+                <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" style="width: 220px; height: auto; margin-bottom: 10px;">
                 <!-- <div class="company-name">{{ nom_organisation }}</div> -->
                 <div class="company-tagline">Votre partenaire logement en France</div>
             </div>
@@ -441,7 +445,7 @@ def get_attestation_html_template():
                             <div class="detail-value">{{ date_entree_logement }}</div>
                         </div>
                     </div>
-                    <div class="detail-item" style="grid-column: 1/-1; margin-top: 5px;">
+                    <div class="detail-item" style="width: 100%; margin-top: 5px; display: block;">
                         <div class="detail-label">Durée de location estimée</div>
                         <div class="detail-value">{{ duree_location_souscription }}</div>
                     </div>
@@ -454,9 +458,10 @@ def get_attestation_html_template():
                 <div class="signature-container">
                     <div class="qr-section">
                         <div class="qr-placeholder">
-                            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" style="width: 120px; height: 120px;">
+                            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" style="width: 160px; height: 160px;">
                         </div>
                         <div style="font-size: 8pt; color: #7f8c8d;">Code de vérification</div>
+                        <div style="font-size: 7pt; color: #7f8c8d; margin-top: 5px; text-align: center;">Flasher ce code QR pour vérifier la validité de ce document</div>
                     </div>
 
                     <div class="signature-details">
