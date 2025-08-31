@@ -102,7 +102,7 @@ def get_html_template():
         .invoice-title-section {
             text-align: right;
             flex-shrink: 0;
-            background-color: #0140FF;
+            background-color: rgba(1, 64, 255, 0.85);
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
@@ -110,15 +110,17 @@ def get_html_template():
 
         .invoice-title {
             font-size: 26px;
-            font-weight: 900;
+            font-weight: 700;
             color: #ffffff;
             margin-bottom: 8px;
             letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .invoice-meta {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
         }
 
         /* Section détails améliorée */
@@ -181,7 +183,7 @@ def get_html_template():
         }
 
         .services-table thead th {
-            background-color: #0140FF;
+            background-color: rgba(1, 64, 255, 0.9);
             color: white;
             font-size: 11px;
             font-weight: 700;
@@ -189,6 +191,7 @@ def get_html_template():
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
         }
 
         .services-table tbody td {
@@ -362,18 +365,18 @@ def get_html_template():
         <!-- Section coordonnées bancaires et client -->
         <div class="details-grid">
             <div class="details-column">
-                <h3>💳 Coordonnées Bancaires</h3>
+                <h3>Coordonnées Bancaires</h3>
                 <p><strong>Payable à :</strong> BOAZ STUDY CAMEROUN</p>
                 {% for bank in banks %}
-                <p><strong>🏦 Banque :</strong> {{ bank.bank_name }}</p>
+                <p><strong>Banque :</strong> {{ bank.bank_name }}</p>
                 {% if bank.iban %}
-                <p><strong>💳 IBAN :</strong> {{ bank.iban }}</p>
+                <p><strong>IBAN :</strong> {{ bank.iban }}</p>
                 {% endif %}
                 {% if bank.swift_code %}
-                <p><strong>🌍 CODE SWIFT :</strong> {{ bank.swift_code }}</p>
+                <p><strong>CODE SWIFT :</strong> {{ bank.swift_code }}</p>
                 {% endif %}
                 {% if bank.account_number %}
-                <p><strong>📄 N° Compte :</strong> {{ bank.account_number }}</p>
+                <p><strong>N° Compte :</strong> {{ bank.account_number }}</p>
                 {% endif %}
                 {% if not loop.last %}
                 <div class="bank-separator"></div>
@@ -382,12 +385,12 @@ def get_html_template():
             </div>
             
             <div class="details-column customer-column">
-                <h3>👤 Facturé à</h3>
+                <h3>Facturé à</h3>
                 <p><strong>{{ customer.name }}</strong></p>
-                <p><strong>📍 Adresse :</strong> {{ customer.address }}</p>
-                <p><strong>📧 Mail :</strong> {{ customer.email }}</p>
+                <p><strong>Adresse :</strong> {{ customer.address }}</p>
+                <p><strong>Mail :</strong> {{ customer.email }}</p>
                 {% if customer.phone %}
-                <p><strong>📞 Téléphone :</strong> {{ customer.phone }}</p>
+                <p><strong>Téléphone :</strong> {{ customer.phone }}</p>
                 {% endif %}
             </div>
         </div>
@@ -544,9 +547,9 @@ def generate_pdf_from_html(proforma_data: dict, output_path: str):
                 '--javascript-delay', '1000',
                 '--no-stop-slow-scripts',
                 #'--disable-javascript',
-                #'--print-media-type',
-                #'--no-outline',
-                #'--quiet',
+                '--print-media-type',
+                '--no-outline',
+                '--quiet',
                 
                 temp_html_path,
                 output_path
