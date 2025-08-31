@@ -66,6 +66,10 @@ def get_attestation_html_template():
             margin: 10mm;
         }
         
+        .page-break {
+            page-break-before: always;
+        }
+        
         * {
             box-sizing: border-box;
         }
@@ -193,7 +197,7 @@ def get_attestation_html_template():
             content: '';
             position: absolute;
             bottom: -6px;
-            left: 50%;
+            left: 46.5%;
             transform: translateX(-50%);
             width: 40px;
             height: 2px;
@@ -335,6 +339,47 @@ def get_attestation_html_template():
             display: inline-block;
         }
         
+        .services-list {
+            margin: 20px 0;
+            padding-left: 0;
+        }
+        
+        .services-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .services-list li {
+            margin-bottom: 12px;
+            padding: 10px 15px 10px 35px;
+            background: #f8f9fa;
+            border-left: 4px solid #0140ff;
+            border-radius: 0 4px 4px 0;
+            position: relative;
+            font-size: 10pt;
+            color: #34495e;
+        }
+        
+        .services-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #0140ff;
+            font-weight: bold;
+            font-size: 14px;
+            background: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #0140ff;
+        }
+        
         .company-info {
             font-size: 8pt;
             color: #5a6c7d;
@@ -449,6 +494,84 @@ def get_attestation_html_template():
                         <div class="detail-label">Durée de location estimée</div>
                         <div class="detail-value">{{ duree_location_souscription }}</div>
                     </div>
+                </div>
+
+                <p>Nous restons à votre disposition pour tout complément d'information. Ce document ne peut être revendu.</p>
+            </div>
+
+            <div class="signature-section">
+                <div class="signature-container">
+                    <div class="qr-section">
+                        <div class="qr-placeholder">
+                            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code" style="width: 160px; height: 160px;">
+                        </div>
+                        <div style="font-size: 8pt; color: #7f8c8d;">Code de vérification</div>
+                        <div style="font-size: 7pt; color: #7f8c8d; margin-top: 5px; text-align: center;">Flasher ce code QR pour vérifier la validité de ce document</div>
+                    </div>
+
+                    <div class="signature-details">
+                        <p style="margin-bottom: 5px; font-weight: 600;">Fait à {{ ville_organisation }} en {{ pays_organisation }}</p>
+                        <p style="margin-bottom: 20px; color: #7f8c8d;">Le {{ date_emission_document }}</p>
+                        
+                        <img src="/app/app/static/assets/cachet-bs-rouge-rectangle.jpeg" alt="Cachet Boaz Study" class="stamp">
+
+                        <div class="company-info">
+                            <strong>{{ nom_complet_organisation }}</strong><br>
+                            R.C.S. {{ numero_rcs_organisation }}  <br>
+                            {{ email_contact_organisation }}<br>
+                            {{ adresse_organisation }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="reference-info">
+                <div class="document-ref">
+                    <h4>Référence du document</h4>
+                    <p><strong>{{ reference_document }}</strong></p>
+                </div>
+            </div>
+
+            <div class="validity-notice">
+                <strong>IMPORTANT :</strong> Cette attestation est valide pendant {{ duree_validite_document }} jours après la date d'émission
+            </div>
+        </footer>
+    </div>
+
+    <!-- PAGE 2: ATTESTATION DE PRISE EN CHARGE -->
+    <div class="document-container page-break">
+        <header class="header">
+            <div class="logo-section">
+                <img src="/app/app/static/assets/logo-boaz-housing.png" alt="Boaz Housing Logo" style="width: 220px; height: auto; margin-bottom: 10px;">
+                <div class="company-tagline">Votre partenaire logement en France</div>
+            </div>
+        </header>
+
+        <section class="title-section">
+            <h1 class="document-title">Attestation de prise en charge</h1>
+        </section>
+
+        <main class="content-section">
+            <div class="intro-paragraph">
+                <strong>{{ site_organisation }}</strong> est un site web exploité par <strong>{{ nom_complet_organisation }}</strong>, une entreprise de l'économie sociale et solidaire qui a pour objet social l'insertion sociale, scolaire et professionnelle des étrangers en France.
+            </div>
+
+            <div class="attestation-content">
+                <p><strong>{{ nom_complet_ceo }}</strong>, né le {{ date_naissance_ceo }} à {{ ville_naissance_ceo }} en {{ pays_naissance_ceo }}, Président Directeur Générale de la société {{ nom_complet_organisation }} exploitant le site web {{ site_organisation }}, dont le siège social est situé au {{ adresse_organisation }}, inscrite au R.C.S. de {{ ville_organisation }} sous le numéro {{ numero_rcs_organisation }}, code NAF : {{ code_naf_organisation }}, <strong>atteste sur l'honneur que :</strong></p>
+
+                <p><strong>{{ nom_complet_client }}</strong> né(e) le {{ date_naissance_client }} à {{ ville_naissance_client }}, {{ pays_naissance_client }}, sera accompagné(e) sur l'ensemble de ses démarches administratives pour son installation en France, l'étudiant(e) sera notamment pris(e) en charge pour :</p>
+
+                <div class="services-list">
+                    <ul>
+                        <li><strong>Valider la réservation d'un logement en France</strong> - Garantie d'un logement conforme aux standards français</li>
+                        <li><strong>Ouvrir un contrat d'assurance habitation et de fourniture d'énergie</strong> - Couverture complète du logement</li>
+                        <li><strong>Souscrire à une assurance voyage pour étudiants étrangers</strong> - Protection durant le séjour</li>
+                        <li><strong>Ouvrir un compte bancaire français</strong> - Accompagnement bancaire personnalisé</li>
+                        <li><strong>S'inscrire auprès de l'assurance maladie française et d'une complémentaire santé</strong> - Couverture santé optimale</li>
+                        <li><strong>Valider son visa ainsi que son renouvellement</strong> - Suivi administratif complet</li>
+                    </ul>
                 </div>
 
                 <p>Nous restons à votre disposition pour tout complément d'information. Ce document ne peut être revendu.</p>
@@ -658,7 +781,7 @@ class AttestationGenerator:
                 '--encoding', 'UTF-8',
                 '--enable-local-file-access',
                 '--print-media-type',
-                #'--no-outline',
+                '--no-outline',
                 temp_html_path,
                 output_path
             ]

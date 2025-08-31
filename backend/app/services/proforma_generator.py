@@ -607,7 +607,7 @@ def generate_pdf_from_html(proforma_data: dict, output_path: str):
                 # '--dpi', '300',
                 # '--image-dpi', '300',
                 # '--image-quality', '100',
-                # '--print-media-type',
+                '--print-media-type',
                 '--no-outline',
                 #temp_html_path,
                 output_path
