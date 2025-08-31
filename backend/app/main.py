@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # Import des routers
-from app.routers import organisation, logements, souscriptions
+from app.routers import organisation, logements, souscriptions, services
 
 load_dotenv()
 
@@ -22,7 +22,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000", 
+        "http://frontend:3000",
+        "http://172.18.0.1:3000",
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +38,7 @@ app.add_middleware(
 app.include_router(organisation.router, prefix="/api")
 app.include_router(logements.router, prefix="/api")
 app.include_router(souscriptions.router, prefix="/api")
+app.include_router(services.router, prefix="/api")
 
 @app.get("/")
 def read_root():

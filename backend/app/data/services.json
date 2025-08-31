@@ -1,0 +1,67 @@
+{
+  "services": [
+    {
+      "id": 1,
+      "nom": "Attestation de Logement et Prise en Charge",
+      "titre": "Frais Attestation de Logement",
+      "description": "Service complet d'attestation de logement avec prise en charge administrative pour étudiants étrangers",
+      "slug": "attestation-logement-prise-charge",
+      "active": true,
+      "tarif": 160000.0
+    },
+    {
+      "id": 2,
+      "nom": "Montant de la caution bancaire/AVI",
+      "titre": "Montant de la caution bancaire/AVI",
+      "description": "Caution bancaire ou Avis de Virement International pour garantir le logement",
+      "slug": "caution-bancaire-avi",
+      "active": false,
+      "tarif": 5502000.0
+    },
+    {
+      "id": 3,
+      "nom": "Frais de transfert de Fonds",
+      "titre": "Frais de transfert de Fonds",
+      "description": "Frais associés au transfert international de fonds",
+      "slug": "transfert-fonds",
+      "active": false,
+      "tarif": 137550.0
+    },
+    {
+      "id": 4,
+      "nom": "Frais AVI",
+      "titre": "Frais AVI",
+      "description": "Frais pour l'émission d'un Avis de Virement International",
+      "slug": "frais-avi",
+      "active": false,
+      "tarif": 230000.0
+    },
+    {
+      "id": 5,
+      "nom": "Frais Assurance Voyage",
+      "titre": "Frais Assurance Voyage",
+      "description": "Couverture d'assurance voyage pour les étudiants internationaux",
+      "slug": "assurance-voyage",
+      "active": false,
+      "tarif": 50000.0
+    },
+    {
+      "id": 6,
+      "nom": "Frais de facilité de caisse",
+      "titre": "Frais de facilité de caisse",
+      "description": "Frais pour facilité de caisse et services bancaires",
+      "slug": "facilite-caisse",
+      "active": false,
+      "tarif": 120000.0
+    },
+    {
+      "id": 7,
+      "nom": "Frais Accueil Premium",
+      "titre": "Frais Accueil Premium",
+      "description": "Service d'accueil premium à l'aéroport et accompagnement",
+      "slug": "accueil-premium",
+      "active": false,
+      "tarif": 180000.0
+    }
+  ]
+}

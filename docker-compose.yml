@@ -88,7 +88,7 @@ services:
       target: development
     container_name: boaz-frontend
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://backend:8000}
       - REACT_APP_ENV=${APP_ENV:-development}
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true

@@ -1,0 +1,46 @@
+{
+  "organisation": {
+    "nom": "Boaz-Housing",
+    "nom_complet": "Boaz Study Cameroun SAS",
+    "description": "Yaoundé Total École de Police",
+    "logo_path": "/static/images/boaz-logo.png",
+    "site_web": "www.boaz-study.com",
+    "email": "info@boaz-study.fr",
+    "telephone": "+33 01 84 18 02 67",
+    "adresse": "14 Rue Jean Piestre, Corbeille Essonne, 91100",
+    "ville_rcs": "Corbeille Essonne",
+    "numero_rcs": "12345778909987665",
+    "code_naf": "1234D",
+    "ceo": {
+      "nom_complet": "Benjamin YOHO BATOMO",
+      "date_naissance": "17 mars 1992",
+      "ville_naissance": "Douala",
+      "pays_naissance": "Cameroun"
+    },
+    "informations_bancaires": [
+      {
+        "nom": "BOAZ STUDY CAMEROUN",
+        "description": "SOCIÉTÉ GÉNÉRALE CAMEROUN",
+        "code_banque": "10003",
+        "code_agence": "00100",
+        "numero_compte": "06011073195",
+        "cle": "26",
+        "iban": "CM21 1000 3001 0006 0110 7319 526"
+      },
+      {
+        "nom": "BOAZ STUDY CAMEROUN",
+        "description": "BANQUE ATLANTIQUE",
+        "code_banque": "10034",
+        "code_agence": "00050",
+        "numero_compte": "00012750501",
+        "cle": "41",
+        "code_swift": "ATCRCMCM"
+      }
+    ],
+    "mentions_legales": {
+      "conditions_paiement": "This invoice will be payable no later than 30 days after receipt.",
+      "penalites": "After this period, without obligation to send a reminder, in accordance with article L441-6 of the Commercial Code, a penalty will be applied calculated at an annual rate of 15%. A lump sum recovery indemnity of 40 Euros will also be payable.",
+      "recommandations": "RECOMMANDEZ-NOUS et RECEVEZ 25000 FCFA"
+    }
+  }
+}

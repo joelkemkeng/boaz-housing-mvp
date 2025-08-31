@@ -46,7 +46,7 @@ const LogementForm = ({ logement, onSave, onCancel, isEdit = false }) => {
         statut: 'disponible'
       });
     }
-  }, [logement?.id, isEdit]); // Utiliser logement?.id pour une dépendance plus fiable
+  }, [logement, isEdit]);
 
   // Réinitialiser les erreurs quand le formulaire s'ouvre
   useEffect(() => {

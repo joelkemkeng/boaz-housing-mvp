@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getLogement } from '../../services/logementService';
 
 const SouscriptionViewModal = ({ souscription, show, onClose }) => {
@@ -11,14 +11,8 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
     administrative: true
   });
 
-  useEffect(() => {
-    if (show && souscription) {
-      loadLogementDetails();
-    }
-  }, [show, souscription]);
-
-  const loadLogementDetails = async () => {
-    if (souscription.logement_id) {
+  const loadLogementDetails = useCallback(async () => {
+    if (souscription?.logement_id) {
       try {
         setLoadingLogement(true);
         const logementData = await getLogement(souscription.logement_id);
@@ -29,7 +23,13 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
         setLoadingLogement(false);
       }
     }
-  };
+  }, [souscription?.logement_id]);
+
+  useEffect(() => {
+    if (show && souscription) {
+      loadLogementDetails();
+    }
+  }, [show, souscription, loadLogementDetails]);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -127,9 +127,9 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto shadow-2xl transform animate-slideIn">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-orange-200 bg-gradient-to-r from-blue-50 via-blue-100 to-orange-100">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] shadow-2xl transform animate-slideIn flex flex-col">
+        {/* Header fixe */}
+        <div className="px-6 py-4 border-b border-orange-200 bg-gradient-to-r from-blue-50 via-blue-100 to-orange-100 flex-shrink-0 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-blue-900">
@@ -153,8 +153,9 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
           {/* Section Informations Client */}
           {renderSection(
             "Informations Client",
@@ -257,10 +258,11 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
               {renderInfoField("Dernière modification", formatDate(souscription.updated_at))}
             </dl>
           )}
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-orange-200 bg-gradient-to-r from-blue-50 to-orange-50 flex justify-end">
+        {/* Footer fixe */}
+        <div className="px-6 py-4 border-t border-orange-200 bg-gradient-to-r from-blue-50 to-orange-50 flex justify-end flex-shrink-0 rounded-b-lg">
           <button
             onClick={onClose}
             className="px-6 py-2 bg-gradient-to-r from-orange-500 to-blue-500 text-white rounded-lg hover:from-orange-600 hover:to-blue-600 transition-all duration-200 shadow-md font-medium"

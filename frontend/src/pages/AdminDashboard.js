@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ServicesSection from '../components/admin/ServicesSection';
 import HistoriqueSection from '../components/admin/HistoriqueSection';
 

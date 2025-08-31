@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proforma - Boaz Housing</title>
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, 'DejaVu Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-size: 11px;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 10mm 0;
+            position: relative;
+        }
+
+        .invoice-container {
+            width: 210mm;
+            max-width: 210mm;
+            margin: 0;
+            padding: 15mm 15mm 80px 15mm;
+            background-color: #ffffff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 63, 255, 0.1);
+            position: relative;
+            min-height: calc(297mm - 20mm);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-top: 3px solid #003FFF;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ecf0f1 0%, #ffffff 100%);
+            border-radius: 4px;
+            min-height: 120px;
+        }
+        
+        .company-details {
+            flex: 1;
+            padding-left: 15mm;
+        }
+        
+        .company-details p {
+            margin: 3px 0;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #34495e;
+        }
+
+        .company-details p:first-child {
+            font-weight: bold;
+            font-size: 13px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .logo {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+        
+        .invoice-title-section {
+            text-align: right;
+            flex-shrink: 0;
+            padding-right: 15mm;
+        }
+
+        .invoice-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #003FFF;
+            margin: 10px 0 10px 0;
+            line-height: 1.1;
+            text-shadow: 1px 1px 2px rgba(0, 63, 255, 0.1);
+        }
+        
+        .invoice-title-section p {
+            margin: 4px 0;
+            font-size: 12px;
+            color: #34495e;
+            font-weight: 500;
+        }
+        
+        .details-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .billing-info, .customer-info {
+            flex-basis: 48%;
+        }
+
+        .billing-info p, .customer-info p {
+            margin: 4px 0;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #34495e;
+        }
+
+        .billing-info strong.block-title, .customer-info strong.block-title {
+            font-size: 13px;
+            display: block;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #003FFF;
+            padding-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .orange-separator {
+            border: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #F88206 0%, #FF9500 50%, #F88206 100%);
+            margin: 15px 0 20px 0;
+            border-radius: 2px;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .invoice-table th, .invoice-table td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .invoice-table thead th {
+            background: linear-gradient(135deg, #003FFF 0%, #0033CC 100%);
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 12px;
+            padding: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .totals-and-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 10px;
+            flex: 1;
+        }
+
+        .notes-section {
+            flex-basis: 55%;
+            padding-right: 10px;
+        }
+        
+        .totals-section {
+            flex-basis: 45%;
+        }
+
+        .totals-table {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .totals-table td {
+            padding: 10px 15px;
+            font-size: 12px;
+            border-bottom: 1px solid #ecf0f1;
+            color: #34495e;
+        }
+        
+        .totals-table tr.total-ttc td {
+            font-weight: 700;
+            font-size: 14px;
+            background: linear-gradient(135deg, #F88206 0%, #FF9500 100%);
+            color: #ffffff;
+            border-top: 3px solid #E6740A;
+            padding: 12px 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .ps-note {
+            font-weight: 600;
+            color: #F88206;
+            text-align: center;
+            padding: 12px;
+            border: 2px dashed #F88206;
+            background-color: rgba(248, 130, 6, 0.05);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .terms {
+            font-size: 9px;
+            color: #7f8c8d;
+            text-align: justify;
+            line-height: 1.3;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 3px solid #003FFF;
+            border-radius: 4px;
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .footer-terms {
+            position: absolute;
+            bottom: 0;
+            left: 15mm;
+            right: 15mm;
+            background-color: #f8f9fa;
+            border-top: 3px solid #003FFF;
+            padding: 15px;
+            font-size: 8px;
+            color: #7f8c8d;
+            text-align: justify;
+            line-height: 1.2;
+            margin: 0;
+            z-index: 10;
+        }
+
+        .signature-section {
+            text-align: right;
+            margin-top: 15px;
+            padding-right: 50px;
+        }
+        
+        .signature-box {
+            display: inline-block;
+            text-align: center;
+            padding-top: 8px;
+            border-top: 1px solid #ccc;
+            width: 200px;
+            position: relative;
+        }
+        
+        .signature-box p {
+             margin: 0 0 5px 0;
+             font-size: 8px;
+             font-weight: bold;
+        }
+
+        .stamp-image {
+            max-width: 200px;
+            height: auto;
+            transform: rotate(-8deg);
+            transform-origin: center center;
+            margin: 5px 0;
+        }
+
+        @media print, screen {
+            body { 
+                background-color: white; 
+                padding: 5mm;
+                font-size: 8px;
+            }
+            .invoice-container {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                margin: 0;
+                padding: 10px;
+                height: calc(100vh - 10mm);
+            }
+            
+            .invoice-table th, .invoice-table td {
+                padding: 4px 6px;
+                font-size: 10px;
+            }
+            
+            .invoice-table thead th {
+                padding: 5px 6px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-container">
+
+        <header class="invoice-header">
+            <div class="company-details">
+                <p><strong>Boaz Study Cameroun SAS</strong></p>
+                <p>Yaoundé Total École de Police</p>
+                <p>14 Rue Jean Piestre, Corbeil-Essonnes, 91100, France</p>
+                <p>Email: info@boaz-study.fr | Web: www.boaz-study.com</p>
+                <p>Tél: +33 01 84 18 02 67</p>
+            </div>
+            <div class="invoice-title-section">
+                <h1 class="invoice-title">PROFORMA</h1>
+                <p>Date : 30/08/2024</p>
+                <p>N° : PRF-20240830-213845</p>
+            </div>
+        </header>
+
+        <section class="details-section">
+            <div class="billing-info">
+                <strong class="block-title">Coordonnées Bancaires</strong>
+                <p><strong>Payable à :</strong> Boaz Study Cameroun SAS</p>
+                <p><strong>Banque :</strong> SOCIÉTÉ GÉNÉRALE CAMEROUN</p>
+                <p><strong>Nom :</strong> BOAZ STUDY CAMEROUN</p>
+                <p><strong>IBAN :</strong> CM21 1000 3001 0006 0110 7319 526</p>
+                <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+                <p><strong>Banque :</strong> BANQUE ATLANTIQUE</p>
+                <p><strong>Nom :</strong> BOAZ STUDY CAMEROUN</p>
+                <p><strong>CODE SWIFT :</strong> ATCRCMCM</p>
+                <p><strong>N° Compte :</strong> 00012750501</p>
+            </div>
+            <div class="customer-info">
+                <strong class="block-title">Facturé à</strong>
+                <p><strong>Marie Claire MBANG</strong></p>
+                <p>Date de naissance: 25/08/1998</p>
+                <p>Lieu de naissance: Douala, Cameroun</p>
+                <p>Email: marie.mbang@email.com</p>
+                <p>Téléphone: +237677123456</p>
+                <p>Logement: 45 Avenue des Champs-Élysées, Paris 8ème</p>
+            </div>
+        </section>
+
+        <hr class="orange-separator">
+
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-center">Qté</th>
+                    <th class="text-right">Prix unitaire</th>
+                    <th class="text-right">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Attestation de Logement et Prise en Charge</td>
+                    <td class="text-center">1</td>
+                    <td class="text-right">160 000</td>
+                    <td class="text-right">160 000</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-and-footer">
+            <div class="notes-section">
+                <p class="ps-note">RECOMMANDEZ-NOUS ET RECEVEZ 25000 FCFA</p>
+                
+                <div style="margin-top: 15px; font-size: 10px;">
+                    <strong style="color: #003FFF;">CONDITIONS ET MODALITÉS:</strong>
+                    <ul style="margin: 5px 0; padding-left: 15px; color: #34495e;">
+                        <li>Cette proforma est valable 30 jours à compter de la date d'émission</li>
+                        <li>Les tarifs sont exprimés en Francs CFA (FCFA)</li>
+                        <li>Un acompte de 50% est requis pour confirmer la réservation</li>
+                        <li>Tous les services incluent la documentation nécessaire</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="totals-section">
+                <table class="totals-table">
+                    <tbody>
+                        <tr>
+                            <td>Total HT</td>
+                            <td class="text-right">160 000 FCFA</td>
+                        </tr>
+                        <tr class="total-ttc">
+                            <td><strong>Total TTC</strong></td>
+                            <td class="text-right"><strong>160 000 FCFA</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="signature-section">
+                   <div class="signature-box">
+                        <p>Boaz-Housing - 30/08/2024</p>
+                        <p style="margin-top: 30px;">Benjamin YOHO BATOMO</p>
+                        <p>Directeur Général</p>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer-terms">
+        <strong>Conditions de paiement:</strong> This invoice will be payable no later than 30 days after receipt.
+        After this period, without obligation to send a reminder, in accordance with article L441-6 of the Commercial Code, a penalty will be applied calculated at an annual rate of 15%. A lump sum recovery indemnity of 40 Euros will also be payable.
+    </footer>
+
+</body>
+</html>
