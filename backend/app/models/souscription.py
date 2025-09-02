@@ -5,10 +5,11 @@ from app.database import Base
 import enum
 
 class StatutSouscription(str, enum.Enum):
-    ATTENTE_PAIEMENT = "attente_paiement"
-    PAYE = "paye"
-    LIVRE = "livre"
-    CLOTURE = "cloture"
+    ATTENTE_PAIEMENT = "ATTENTE_PAIEMENT"
+    ATTENTE_LIVRAISON = "ATTENTE_LIVRAISON"
+    PAYE = "PAYE"
+    LIVRE = "LIVRE"
+    CLOTURE = "CLOTURE"
 
 class Souscription(Base):
     __tablename__ = "souscriptions"
@@ -43,10 +44,17 @@ class Souscription(Base):
     # Services sélectionnés (stockage des IDs des services depuis services.json)
     services_ids = Column(JSON, nullable=True, default=lambda: [1])  # Par défaut, service ID 1
     
+    # Dates de suivi
+    date_livraison = Column(Date, nullable=True)
+    date_expiration = Column(Date, nullable=True)
+    preuve_paiement_path = Column(String, nullable=True)
+    cree_par_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
     # Statut et tracking
     statut = Column(Enum(StatutSouscription), default=StatutSouscription.ATTENTE_PAIEMENT)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relation
+    # Relations
     logement = relationship("Logement", backref="souscriptions")
+    createur = relationship("User", foreign_keys=[cree_par_user_id])

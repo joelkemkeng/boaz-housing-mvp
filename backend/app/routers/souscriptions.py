@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ from app.services.proforma_generator import ProformaGenerator
 from app.services.attestation_generator import AttestationGenerator
 from app.services.services_data import ServicesDataService
 from app.services.email_service import email_service
+from app.services.file_upload_service import file_upload_service
 from app.models.souscription import StatutSouscription
 from pydantic import BaseModel
 import os
@@ -477,3 +478,206 @@ def test_email_connection():
         return {"message": "Connexion SMTP OK"}
     else:
         return {"message": "Erreur de connexion SMTP", "status": "error"}
+
+# Nouveaux endpoints pour Phase 2.2 - Actions métier
+
+@router.post("/{souscription_id}/payer", response_model=SouscriptionResponse)
+async def payer_souscription(
+    souscription_id: int,
+    db: Session = Depends(get_db),
+    file: Optional[UploadFile] = File(None)
+):
+    """Action Payer : ATTENTE_PAIEMENT → ATTENTE_LIVRAISON (avec upload optionnel)"""
+    try:
+        # Gérer l'upload de fichier si fourni
+        preuve_path = None
+        if file:
+            # Vérifier que la souscription existe avant upload
+            db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+            if not db_souscription:
+                raise HTTPException(status_code=404, detail="Souscription non trouvée")
+            
+            # Supprimer l'ancienne preuve si elle existe
+            if db_souscription.preuve_paiement_path:
+                file_upload_service.delete_file(db_souscription.preuve_paiement_path)
+            
+            # Sauvegarder le nouveau fichier
+            preuve_path, _ = await file_upload_service.save_file(file, convert_to_pdf=True)
+        
+        # Effectuer le paiement avec la preuve
+        db_souscription = souscription_service.payer_souscription(
+            db=db, souscription_id=souscription_id, preuve_paiement_path=preuve_path
+        )
+        return db_souscription
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise  # Re-raise HTTPException from file upload
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du paiement: {str(e)}")
+
+@router.post("/{souscription_id}/livrer", response_model=SouscriptionResponse)
+def livrer_souscription(
+    souscription_id: int,
+    db: Session = Depends(get_db)
+):
+    """Action Livrer : ATTENTE_LIVRAISON → LIVRE (+ dates de livraison/expiration)"""
+    try:
+        db_souscription = souscription_service.livrer_souscription(
+            db=db, souscription_id=souscription_id
+        )
+        return db_souscription
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la livraison: {str(e)}")
+
+@router.get("/logement/{logement_id}/disponible")
+def check_logement_disponible(
+    logement_id: int,
+    db: Session = Depends(get_db)
+):
+    """Vérifier qu'un logement est disponible pour livraison"""
+    try:
+        disponible = souscription_service.valider_logement_disponible(
+            db=db, logement_id=logement_id
+        )
+        return {"logement_id": logement_id, "disponible": disponible}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur de vérification: {str(e)}")
+
+# Phase 3 - Upload des preuves de paiement
+
+@router.post("/{souscription_id}/upload-preuve-paiement", response_model=SouscriptionResponse)
+async def upload_preuve_paiement(
+    souscription_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Upload d'une preuve de paiement (image ou PDF) avec conversion automatique"""
+    try:
+        # Vérifier que la souscription existe
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # Vérifier que la souscription peut recevoir une preuve de paiement
+        if db_souscription.statut not in [StatutSouscription.ATTENTE_PAIEMENT, StatutSouscription.ATTENTE_LIVRAISON]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Impossible d'uploader une preuve pour le statut {db_souscription.statut}"
+            )
+        
+        # Supprimer l'ancienne preuve si elle existe
+        if db_souscription.preuve_paiement_path:
+            file_upload_service.delete_file(db_souscription.preuve_paiement_path)
+        
+        # Sauvegarder le nouveau fichier (avec conversion auto image→PDF)
+        relative_path, absolute_path = await file_upload_service.save_file(file, convert_to_pdf=True)
+        
+        # Mettre à jour la souscription avec le chemin de la preuve
+        from sqlalchemy import text
+        update_query = text("""
+            UPDATE souscriptions 
+            SET preuve_paiement_path = :preuve_path, updated_at = CURRENT_TIMESTAMP
+            WHERE id = :souscription_id
+        """)
+        
+        db.execute(update_query, {
+            "preuve_path": relative_path,
+            "souscription_id": souscription_id
+        })
+        db.commit()
+        
+        # Récupérer la souscription mise à jour
+        db.refresh(db_souscription)
+        
+        return db_souscription
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de l'upload: {str(e)}"
+        )
+
+@router.get("/{souscription_id}/preuve-paiement")
+def get_preuve_paiement(
+    souscription_id: int,
+    db: Session = Depends(get_db)
+):
+    """Télécharger la preuve de paiement d'une souscription"""
+    try:
+        # Vérifier que la souscription existe
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # Vérifier qu'une preuve existe
+        if not db_souscription.preuve_paiement_path:
+            raise HTTPException(status_code=404, detail="Aucune preuve de paiement trouvée")
+        
+        # Vérifier que le fichier existe
+        file_info = file_upload_service.get_file_info(db_souscription.preuve_paiement_path)
+        if not file_info:
+            raise HTTPException(status_code=404, detail="Fichier de preuve non trouvé")
+        
+        # Retourner le fichier
+        filename = f"preuve_paiement_{db_souscription.reference}.pdf"
+        return FileResponse(
+            path=file_info["path"],
+            filename=filename,
+            media_type="application/pdf"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la récupération: {str(e)}"
+        )
+
+@router.delete("/{souscription_id}/preuve-paiement", response_model=SouscriptionResponse)
+def delete_preuve_paiement(
+    souscription_id: int,
+    db: Session = Depends(get_db)
+):
+    """Supprimer la preuve de paiement d'une souscription"""
+    try:
+        # Vérifier que la souscription existe
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # Vérifier qu'une preuve existe
+        if not db_souscription.preuve_paiement_path:
+            raise HTTPException(status_code=404, detail="Aucune preuve de paiement à supprimer")
+        
+        # Supprimer le fichier
+        file_upload_service.delete_file(db_souscription.preuve_paiement_path)
+        
+        # Mettre à jour la souscription
+        from sqlalchemy import text
+        update_query = text("""
+            UPDATE souscriptions 
+            SET preuve_paiement_path = NULL, updated_at = CURRENT_TIMESTAMP
+            WHERE id = :souscription_id
+        """)
+        
+        db.execute(update_query, {"souscription_id": souscription_id})
+        db.commit()
+        
+        # Récupérer la souscription mise à jour
+        db.refresh(db_souscription)
+        
+        return db_souscription
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la suppression: {str(e)}"
+        )

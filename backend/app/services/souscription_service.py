@@ -1,5 +1,7 @@
 import secrets
 import string
+import json
+from datetime import date, timedelta
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from app.models.souscription import Souscription, StatutSouscription
@@ -108,6 +110,87 @@ class SouscriptionService:
         db.delete(db_souscription)
         db.commit()
         return True
+    
+    def payer_souscription(self, db: Session, souscription_id: int, preuve_paiement_path: Optional[str] = None) -> Souscription:
+        """Action Payer : ATTENTE_PAIEMENT → ATTENTE_LIVRAISON"""
+        db_souscription = self.get_souscription(db, souscription_id)
+        if not db_souscription:
+            raise ValueError("Souscription non trouvée")
+        
+        # Vérifier le statut actuel
+        if db_souscription.statut != StatutSouscription.ATTENTE_PAIEMENT:
+            raise ValueError(f"Impossible de payer: statut actuel {db_souscription.statut}")
+        
+        # Changer le statut
+        db_souscription.statut = StatutSouscription.ATTENTE_LIVRAISON
+        
+        # Ajouter la preuve de paiement si fournie
+        if preuve_paiement_path:
+            db_souscription.preuve_paiement_path = preuve_paiement_path
+        
+        db.commit()
+        db.refresh(db_souscription)
+        return db_souscription
+    
+    def livrer_souscription(self, db: Session, souscription_id: int) -> Souscription:
+        """Action Livrer : ATTENTE_LIVRAISON → LIVRE (+ calcul date_expiration)"""
+        db_souscription = self.get_souscription(db, souscription_id)
+        if not db_souscription:
+            raise ValueError("Souscription non trouvée")
+        
+        # Vérifier le statut actuel
+        if db_souscription.statut != StatutSouscription.ATTENTE_LIVRAISON:
+            raise ValueError(f"Impossible de livrer: statut actuel {db_souscription.statut}")
+        
+        # Valider que le logement est disponible
+        if not self.valider_logement_disponible(db, db_souscription.logement_id):
+            raise ValueError("Logement non disponible pour livraison")
+        
+        # Calculer la date d'expiration selon les services
+        duree_validite_jours = self._get_duree_validite_services(db_souscription.services_ids or [1])
+        
+        # Changer le statut et définir les dates
+        db_souscription.statut = StatutSouscription.LIVRE
+        db_souscription.date_livraison = date.today()
+        db_souscription.date_expiration = date.today() + timedelta(days=duree_validite_jours)
+        
+        # Marquer le logement comme occupé si service ID 1 (attestation hébergement)
+        if 1 in (db_souscription.services_ids or []):
+            logement = db.query(Logement).filter(Logement.id == db_souscription.logement_id).first()
+            if logement:
+                logement.statut = StatutLogement.OCCUPE
+        
+        db.commit()
+        db.refresh(db_souscription)
+        return db_souscription
+    
+    def valider_logement_disponible(self, db: Session, logement_id: int) -> bool:
+        """Vérifier qu'un logement est disponible pour livraison"""
+        logement = db.query(Logement).filter(Logement.id == logement_id).first()
+        if not logement:
+            return False
+        return logement.statut == StatutLogement.DISPONIBLE
+    
+    def _get_duree_validite_services(self, services_ids: List[int]) -> int:
+        """Récupérer la durée de validité en jours depuis services.json"""
+        try:
+            with open('/app/app/data/services.json', 'r', encoding='utf-8') as f:
+                services_data = json.load(f)
+            
+            # Par défaut 365 jours (1 an)
+            duree_max = 365
+            
+            for service_id in services_ids:
+                for service in services_data.get('services', []):
+                    if service['id'] == service_id:
+                        duree_service = service.get('duree_validite_jours', 365)
+                        duree_max = max(duree_max, duree_service)
+                        break
+            
+            return duree_max
+        except Exception:
+            # Fallback à 365 jours si erreur
+            return 365
 
 # Instance globale
 souscription_service = SouscriptionService()

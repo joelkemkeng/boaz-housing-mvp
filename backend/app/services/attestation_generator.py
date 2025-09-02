@@ -750,9 +750,27 @@ class AttestationGenerator:
             # Document
             'reference_document': reference,
             'date_emission_document': datetime.now().strftime('%d/%m/%Y'),
-            'duree_validite_document': '45',
+            'duree_validite_document': str(self._get_duree_validite_attestation()),
             'qr_code_base64': qr_code_base64
         }
+    
+    def _get_duree_validite_attestation(self) -> int:
+        """Récupérer la durée de validité de l'attestation (service ID 1)"""
+        try:
+            import json
+            with open('/app/app/data/services.json', 'r', encoding='utf-8') as f:
+                services_data = json.load(f)
+            
+            # Rechercher le service ID 1 (attestation hébergement)
+            for service in services_data.get('services', []):
+                if service['id'] == 1:
+                    return service.get('duree_validite_jours', 365)
+            
+            # Fallback à 365 jours
+            return 365
+        except Exception:
+            # Fallback à 365 jours en cas d'erreur
+            return 365
     
     def _generate_pdf_from_html(self, html_content: str, output_path: str):
         """Génère PDF à partir du HTML avec wkhtmltopdf"""

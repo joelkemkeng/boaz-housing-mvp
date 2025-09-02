@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # Import des routers
-from app.routers import organisation, logements, souscriptions, services
+from app.routers import organisation, logements, souscriptions, services, auth, users
 
 load_dotenv()
 
@@ -35,6 +35,8 @@ app.add_middleware(
 )
 
 # Inclusion des routers
+app.include_router(auth.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
 app.include_router(organisation.router, prefix="/api")
 app.include_router(logements.router, prefix="/api")
 app.include_router(souscriptions.router, prefix="/api")

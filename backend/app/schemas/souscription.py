@@ -56,6 +56,12 @@ class SouscriptionUpdate(BaseModel):
     date_entree_prevue: Optional[date] = None
     duree_location_mois: Optional[int] = None
     services_ids: Optional[List[int]] = None
+    
+    # Nouveaux champs de suivi
+    date_livraison: Optional[date] = None
+    date_expiration: Optional[date] = None
+    preuve_paiement_path: Optional[str] = None
+    cree_par_user_id: Optional[int] = None
 
 class SouscriptionResponse(SouscriptionBase):
     id: int
@@ -65,6 +71,12 @@ class SouscriptionResponse(SouscriptionBase):
     updated_at: Optional[datetime]
     logement: Optional[LogementResponse] = None
     services_ids: Optional[List[int]] = [1]
+    
+    # Nouveaux champs de suivi
+    date_livraison: Optional[date] = None
+    date_expiration: Optional[date] = None
+    preuve_paiement_path: Optional[str] = None
+    cree_par_user_id: Optional[int] = None
     
     class Config:
         from_attributes = True

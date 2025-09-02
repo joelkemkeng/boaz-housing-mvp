@@ -116,4 +116,11 @@ afin de tester et voir l'attestation de logement dans de bonne condition , ajout
 │   auto ,                                             
 │   c'est moi qui te donner les autorsation de passer d'une etaoe a une autres ,                                           
 │   et comme je t'ai dit , ne cherche pas a compliquer les choses , ca doit etre simple , Robuste , donc une exelente genstion des erreur    │
-│   front et back , et tres fonctionnel ,                                                                                                    
+│   front et back , et tres fonctionnel ,     
+
+
+
+
+
+cree un dossier "documentation-test-user" chaque fichier concerne chaque etape , et ca doit decrire comme j'effectue les test de la tache 
+  moi meme , si il ya un script python a executer , documenter comment l'executer , et decrire bien
