@@ -9,6 +9,7 @@ from app.services.souscription_service import souscription_service
 from app.services.proforma_generator import ProformaGenerator
 from app.services.attestation_generator import AttestationGenerator
 from app.services.services_data import ServicesDataService
+from app.services.email_service import email_service
 from app.models.souscription import StatutSouscription
 from pydantic import BaseModel
 import os
@@ -268,3 +269,211 @@ def generate_attestation(
             status_code=500,
             detail=f"Erreur lors de la génération de l'attestation: {str(e)}"
         )
+
+class EmailRequest(BaseModel):
+    """Modèle pour l'envoi d'emails"""
+    to_email: str
+    client_name: Optional[str] = ""
+
+@router.post("/{souscription_id}/send-proforma")
+def send_proforma_email_simple(
+    souscription_id: int,
+    db: Session = Depends(get_db)
+):
+    """Envoyer le Proforma par email à l'adresse du client de la souscription"""
+    try:
+        # Récupérer la souscription avec validation
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # Vérifier que l'email client existe
+        if not db_souscription.email_client:
+            raise HTTPException(status_code=400, detail="Aucune adresse email trouvée pour ce client")
+        
+        # Vérifier qu'un logement est associé
+        if not db_souscription.logement:
+            raise HTTPException(status_code=400, detail="Aucun logement associé à cette souscription")
+        
+        # Initialiser les services
+        proforma_generator = ProformaGenerator()
+        services_data_service = ServicesDataService()
+        
+        # Récupérer les données organisation
+        organisation_data = services_data_service.get_organisation_details()
+        if not organisation_data:
+            raise HTTPException(status_code=500, detail="Configuration organisation manquante")
+        
+        # Préparer les données client
+        client_data = {
+            'nom': db_souscription.nom_client,
+            'prenom': db_souscription.prenom_client,
+            'email': db_souscription.email_client
+        }
+        
+        # Préparer les données logement
+        logement_data = {
+            'adresse': db_souscription.logement.adresse,
+            'ville': db_souscription.logement.ville,
+            'pays': db_souscription.logement.pays,
+            'prix_mois': db_souscription.logement.loyer
+        }
+        
+        # Récupérer les services depuis services.json
+        # Si la souscription a services_ids, les utiliser, sinon par défaut service ID 1
+        services_ids = getattr(db_souscription, 'services_ids', None) or [1]
+        services_data = services_data_service.get_services_by_ids(services_ids)
+        
+        if not services_data:
+            # Fallback si aucun service trouvé, utiliser le service ID 1
+            service_1 = services_data_service.get_service_by_id(1)
+            if service_1:
+                services_data = [service_1]
+            else:
+                # Dernier recours - utiliser service par défaut depuis services.json
+                # Si services.json est corrompu, l'erreur sera remontée
+                raise HTTPException(
+                    status_code=500,
+                    detail="Services non disponibles dans services.json. Vérifiez le fichier de configuration."
+                )
+        
+        # Générer le Proforma PDF
+        pdf_path = proforma_generator.generate_proforma(
+            client_data=client_data,
+            services_data=services_data,
+            logement_data=logement_data,
+            organisation_data=organisation_data
+        )
+        
+        if not os.path.exists(pdf_path):
+            raise HTTPException(status_code=500, detail="Erreur lors de la génération du PDF")
+        
+        # Lire le fichier PDF en bytes
+        with open(pdf_path, 'rb') as f:
+            pdf_bytes = f.read()
+        
+        # Nettoyer le fichier temporaire
+        try:
+            os.remove(pdf_path)
+        except:
+            pass  # Ignore les erreurs de nettoyage
+        
+        # Envoyer l'email avec gestion d'erreur détaillée
+        client_name = f"{db_souscription.prenom_client} {db_souscription.nom_client}"
+        
+        success = email_service.send_proforma_email(
+            to_email=db_souscription.email_client,
+            pdf_bytes=pdf_bytes,
+            reference=db_souscription.reference,
+            client_name=client_name
+        )
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Proforma envoyé avec succès à {db_souscription.email_client}",
+                "recipient": db_souscription.email_client,
+                "reference": db_souscription.reference,
+                "client_name": client_name
+            }
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail="Échec de l'envoi email. Vérifiez la configuration SMTP."
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log l'erreur pour debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erreur envoi proforma ID {souscription_id}: {str(e)}")
+        
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur système lors de l'envoi: {str(e)}"
+        )
+
+@router.post("/{souscription_id}/send-attestation-email")
+def send_attestation_email(
+    souscription_id: int,
+    email_request: EmailRequest,
+    db: Session = Depends(get_db)
+):
+    """Envoyer l'Attestation par email"""
+    try:
+        # Récupérer la souscription
+        db_souscription = souscription_service.get_souscription(db=db, souscription_id=souscription_id)
+        if not db_souscription:
+            raise HTTPException(status_code=404, detail="Souscription non trouvée")
+        
+        # Générer l'Attestation PDF en bytes
+        attestation_generator = AttestationGenerator()
+        services_data_service = ServicesDataService()
+        
+        organisation_data = services_data_service.get_organisation_details()
+        
+        client_data = {
+            'nom': db_souscription.nom_client,
+            'prenom': db_souscription.prenom_client,
+            'date_naissance': db_souscription.date_naissance_client.strftime('%d/%m/%Y') if db_souscription.date_naissance_client else '',
+            'ville_naissance_client': db_souscription.ville_naissance_client,
+            'pays_naissance_client': db_souscription.pays_naissance_client
+        }
+        
+        logement_data = {
+            'adresse': db_souscription.logement.adresse if db_souscription.logement else 'Logement non spécifié',
+            'ville': db_souscription.logement.ville if db_souscription.logement else '',
+            'pays': db_souscription.logement.pays if db_souscription.logement else '',
+            'prix_mois': db_souscription.logement.loyer if db_souscription.logement else 0,
+            'caution': db_souscription.logement.montant_charges if db_souscription.logement else 0
+        }
+        
+        souscription_data = {
+            'date_entree_prevue': db_souscription.date_entree_prevue.strftime('%d/%m/%Y') if db_souscription.date_entree_prevue else '',
+            'duree_location_mois': db_souscription.duree_location_mois
+        }
+        
+        # Générer le PDF et le récupérer en bytes
+        pdf_path = attestation_generator.generate_attestation(
+            client_data=client_data,
+            logement_data=logement_data,
+            souscription_data=souscription_data,
+            organisation_data=organisation_data,
+            reference=db_souscription.reference
+        )
+        
+        # Lire le fichier en bytes
+        with open(pdf_path, 'rb') as f:
+            pdf_bytes = f.read()
+        
+        # Nettoyer le fichier temporaire
+        os.remove(pdf_path)
+        
+        # Envoyer l'email
+        success = email_service.send_attestation_email(
+            to_email=email_request.to_email,
+            pdf_bytes=pdf_bytes,
+            reference=db_souscription.reference,
+            client_name=email_request.client_name or f"{db_souscription.prenom_client} {db_souscription.nom_client}"
+        )
+        
+        if success:
+            return {"message": f"Attestation envoyée par email à {email_request.to_email}"}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@router.get("/test-email-connection")
+def test_email_connection():
+    """Tester la connexion SMTP"""
+    success = email_service.test_connection()
+    if success:
+        return {"message": "Connexion SMTP OK"}
+    else:
+        return {"message": "Erreur de connexion SMTP", "status": "error"}

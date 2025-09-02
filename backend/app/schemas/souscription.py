@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import date, datetime
 from app.models.souscription import StatutSouscription
 from app.schemas.logement import LogementResponse
@@ -27,6 +27,9 @@ class SouscriptionBase(BaseModel):
     logement_id: int
     date_entree_prevue: Optional[date] = None
     duree_location_mois: int = 12
+    
+    # Services sélectionnés
+    services_ids: Optional[List[int]] = [1]  # Par défaut service ID 1
 
 class SouscriptionCreate(SouscriptionBase):
     pass
@@ -52,6 +55,7 @@ class SouscriptionUpdate(BaseModel):
     logement_id: Optional[int] = None
     date_entree_prevue: Optional[date] = None
     duree_location_mois: Optional[int] = None
+    services_ids: Optional[List[int]] = None
 
 class SouscriptionResponse(SouscriptionBase):
     id: int
@@ -60,6 +64,7 @@ class SouscriptionResponse(SouscriptionBase):
     created_at: datetime
     updated_at: Optional[datetime]
     logement: Optional[LogementResponse] = None
+    services_ids: Optional[List[int]] = [1]
     
     class Config:
         from_attributes = True

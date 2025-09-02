@@ -87,6 +87,46 @@ export const previewPdf = (pdfUrl) => {
   }
 };
 
+export const sendProformaEmail = async (souscriptionId) => {
+  try {
+    const response = await api.post(`${PROFORMA_BASE_URL}/${souscriptionId}/send-proforma`);
+    
+    return {
+      success: true,
+      message: response.data.message || 'Proforma envoyé avec succès',
+      recipient: response.data.recipient,
+      reference: response.data.reference,
+      client_name: response.data.client_name
+    };
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi du proforma:', error);
+    
+    let errorMessage = 'Erreur lors de l\'envoi du proforma par email';
+    
+    if (error.response) {
+      if (error.response.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response.status === 404) {
+        errorMessage = 'Souscription non trouvée';
+      } else if (error.response.status === 400) {
+        errorMessage = 'Données manquantes pour l\'envoi (email ou logement)';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Erreur serveur lors de l\'envoi email';
+      }
+    } else if (error.request) {
+      errorMessage = 'Impossible de contacter le serveur';
+    } else {
+      errorMessage = 'Erreur réseau lors de l\'envoi';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage
+    };
+  }
+};
+
 export const previewAttestation = async (souscriptionId) => {
   try {
     const response = await api.post(`${PROFORMA_BASE_URL}/${souscriptionId}/generate-attestation`, {}, {

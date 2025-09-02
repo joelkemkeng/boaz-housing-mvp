@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getSouscriptions, deleteSouscription, changerStatutSouscription } from '../../services/souscriptionService';
-import { previewAttestation, previewPdf } from '../../services/proformaService';
+import { previewAttestation, previewPdf, sendProformaEmail } from '../../services/proformaService';
 import WizardSouscription from './WizardSouscription';
 import SouscriptionViewModal from './SouscriptionViewModal';
+import ConfirmModal from '../common/ConfirmModal';
 
 const HistoriqueSection = ({ onDataChange }) => {
   const [souscriptions, setSouscriptions] = useState([]);
@@ -11,6 +12,16 @@ const HistoriqueSection = ({ onDataChange }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [souscriptionToEdit, setSouscriptionToEdit] = useState(null);
   const [showEditWizard, setShowEditWizard] = useState(false);
+  
+  // États pour l'envoi de proforma
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailModalConfig, setEmailModalConfig] = useState({
+    type: 'info',
+    title: '',
+    message: '',
+    onConfirm: null
+  });
 
   useEffect(() => {
     loadSouscriptions();
@@ -84,6 +95,54 @@ const HistoriqueSection = ({ onDataChange }) => {
       }
     } catch (error) {
       alert('Erreur lors de la génération de l\'attestation: ' + error.message);
+    }
+  };
+
+  const handleSendProforma = (souscription) => {
+    // Configuration du modal de confirmation
+    setEmailModalConfig({
+      type: 'info',
+      title: 'Envoyer Proforma',
+      message: `Envoyer le proforma pour ${souscription.prenom_client} ${souscription.nom_client} à l'adresse ${souscription.email_client} ?`,
+      onConfirm: () => performSendProforma(souscription)
+    });
+    setShowEmailModal(true);
+  };
+
+  const performSendProforma = async (souscription) => {
+    try {
+      setEmailLoading(true);
+      
+      const result = await sendProformaEmail(souscription.id);
+      
+      if (result.success) {
+        // Modal de succès
+        setEmailModalConfig({
+          type: 'success',
+          title: 'Envoi réussi !',
+          message: `Le proforma a été envoyé avec succès à ${result.recipient}. Référence: ${result.reference}`,
+          onConfirm: () => setShowEmailModal(false)
+        });
+      } else {
+        // Modal d'erreur
+        setEmailModalConfig({
+          type: 'error',
+          title: 'Erreur d\'envoi',
+          message: result.error || 'Une erreur est survenue lors de l\'envoi du proforma.',
+          onConfirm: () => setShowEmailModal(false)
+        });
+      }
+      
+    } catch (error) {
+      // Modal d'erreur pour les exceptions
+      setEmailModalConfig({
+        type: 'error',
+        title: 'Erreur système',
+        message: `Erreur inattendue: ${error.message}`,
+        onConfirm: () => setShowEmailModal(false)
+      });
+    } finally {
+      setEmailLoading(false);
     }
   };
 
@@ -247,6 +306,15 @@ const HistoriqueSection = ({ onDataChange }) => {
                           </>
                         )}
                         <button
+                          onClick={() => handleSendProforma(souscription)}
+                          className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                          </svg>
+                          Envoyer Proforma
+                        </button>
+                        <button
                           onClick={() => handlePreviewAttestation(souscription)}
                           className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
                         >
@@ -292,6 +360,19 @@ const HistoriqueSection = ({ onDataChange }) => {
           onCancel={handleEditCancel}
         />
       )}
+
+      {/* Modal Envoi Email */}
+      <ConfirmModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onConfirm={emailModalConfig.onConfirm}
+        title={emailModalConfig.title}
+        message={emailModalConfig.message}
+        type={emailModalConfig.type}
+        loading={emailLoading}
+        confirmText={emailModalConfig.type === 'success' ? 'OK' : emailModalConfig.type === 'error' ? 'OK' : 'Envoyer'}
+        cancelText="Annuler"
+      />
     </>
   );
 };

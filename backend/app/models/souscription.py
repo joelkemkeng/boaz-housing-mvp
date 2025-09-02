@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -39,6 +39,9 @@ class Souscription(Base):
     logement_id = Column(Integer, ForeignKey("logements.id"), nullable=False)
     date_entree_prevue = Column(Date, nullable=True)
     duree_location_mois = Column(Integer, nullable=False, default=12)
+    
+    # Services sélectionnés (stockage des IDs des services depuis services.json)
+    services_ids = Column(JSON, nullable=True, default=lambda: [1])  # Par défaut, service ID 1
     
     # Statut et tracking
     statut = Column(Enum(StatutSouscription), default=StatutSouscription.ATTENTE_PAIEMENT)

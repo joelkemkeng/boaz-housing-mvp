@@ -2,7 +2,7 @@
   "services": [
     {
       "id": 1,
-      "nom": "Attestation de Logement et Prise en Charge",
+      "nom": "Attestation joel de Logement et Prise en Charge",
       "titre": "Frais Attestation de Logement",
       "description": "Service complet d'attestation de logement avec prise en charge administrative pour étudiants étrangers",
       "slug": "attestation-logement-prise-charge",

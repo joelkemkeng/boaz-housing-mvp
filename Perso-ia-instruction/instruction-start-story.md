@@ -94,3 +94,26 @@ afin de tester et voir l'attestation de logement dans de bonne condition , ajout
   preview attestation" en cliquant dessus, il doit generer l'attestion de logement et faire voir en preview , pour que je puisse voir a quoi
    il ressemble , une  fois que je valides la forme , on pourra retirer le bouton , et le faire generer apres avoir payer (appuyer sur le 
   bouton payer " ..etc ,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  │ > commencons donc etape par etape ,surtout , ne jamais passe d'une etape a une autre sans mon autorisation , et sans effectuer les test    │
+│   auto ,                                             
+│   c'est moi qui te donner les autorsation de passer d'une etaoe a une autres ,                                           
+│   et comme je t'ai dit , ne cherche pas a compliquer les choses , ca doit etre simple , Robuste , donc une exelente genstion des erreur    │
+│   front et back , et tres fonctionnel ,                                                                                                    
