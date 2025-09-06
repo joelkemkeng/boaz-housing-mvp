@@ -401,4 +401,51 @@ python backend/app/scripts/run_cron.py
 
 ---
 
+## 🎯 MISE À JOUR RÉCENTE - FUSION DES STATUTS ET RESTRICTIONS ADMIN-GÉNÉRALE (IMPLÉMENTÉES)
+
+### **DISTINCTION IMPORTANTE : STATUTS vs BOUTONS D'ACTIONS**
+
+**STATUTS** : ATTENTE_PAIEMENT, ATTENTE_LIVRAISON, LIVRE, CLOTURE *(PAYE supprimé)*
+**BOUTONS D'ACTIONS** : Voir, Modifier, Payer, Livrer, Envoyer Proforma, Preview Attestation, Supprimer
+
+### **État des Boutons d'Actions par Statut de Souscription**
+
+| Statut Souscription | Boutons d'Actions Visibles | Boutons d'Actions Masqués | Restrictions ADMIN-GENERALE |
+|---------------------|---------------------------|--------------------------|----------------------------|
+| **ATTENTE_PAIEMENT** | Voir, Modifier, **Payer**, Envoyer Proforma, Supprimer | Livrer | **Preview Attestation** EXCLUSIF ADMIN |
+| **ATTENTE_LIVRAISON** | Voir, Modifier, Envoyer Proforma, Supprimer | **Payer** | **Livrer** + **Preview Attestation** EXCLUSIFS ADMIN |
+| **LIVRE** | Voir, Envoyer Proforma, Supprimer | **Modifier**, **Payer**, **Livrer** | **Preview Attestation** EXCLUSIF ADMIN |
+| **CLOTURE** | Voir, Envoyer Proforma, Supprimer | **Modifier**, **Payer**, **Livrer** | **Preview Attestation** EXCLUSIF ADMIN |
+
+### **Permissions Spéciales par Rôle**
+
+- **ADMIN-GENERALE** : 
+  - Accès à TOUS les boutons selon statut
+  - **EXCLUSIF** : Bouton "Livrer" 
+  - **EXCLUSIF** : Bouton "Preview Attestation"
+- **AGENT-BOAZ** : Accès selon statut, JAMAIS les boutons "Livrer" ni "Preview Attestation"
+- **BAILLEUR** : Accès selon statut, JAMAIS les boutons "Livrer" ni "Preview Attestation"
+- **CLIENT** : Aucun accès (non implémenté)
+
+### **Workflow Actions → Statuts (SIMPLIFIÉ)**
+1. **Action "Payer"** : ATTENTE_PAIEMENT → ATTENTE_LIVRAISON
+2. **Action "Livrer"** (ADMIN-GENERALE uniquement) : ATTENTE_LIVRAISON → LIVRE
+3. **CRON automatique** : LIVRE → CLOTURE
+
+### **Règles Logiques Boutons Exclusifs ADMIN-GENERALE**
+#### **Bouton "Livrer" :**
+- ✅ **Visible** : Statut ATTENTE_LIVRAISON + Rôle ADMIN-GENERALE UNIQUEMENT
+- ❌ **Masqué** : Tous autres statuts et rôles
+
+#### **Bouton "Preview Attestation" :**
+- ✅ **Visible** : Tous statuts + Rôle ADMIN-GENERALE UNIQUEMENT
+- ❌ **Masqué** : Tous autres rôles (AGENT-BOAZ, BAILLEUR)
+
+### **Fichiers Modifiés**
+- `frontend/src/components/admin/HistoriqueSection.js` - Logique boutons
+- `frontend/src/components/admin/SouscriptionViewModal.js` - Affichage statuts
+- `frontend/src/services/souscriptionService.js` - Nouvelles fonctions API
+
+---
+
 *Plan adapté pour un MVP rapide et simple, sans complexité technique inutile, focalisé sur les fonctionnalités métier essentielles.*

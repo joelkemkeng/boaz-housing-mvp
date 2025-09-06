@@ -9,7 +9,6 @@ sys.path.append('/app')
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.services.auth_service import auth_service
-from app.schemas.user import UserCreate
 
 def seed_default_users():
     """Créer les 3 utilisateurs par défaut"""
@@ -23,21 +22,21 @@ def seed_default_users():
             "nom": "AGENT",
             "prenom": "Boaz",
             "password": "agent1234",
-            "role": UserRole.AGENT_BOAZ
+            "role": "agent-boaz"
         },
         {
             "email": "bailleur@boaz-study.com", 
             "nom": "BAILLEUR",
             "prenom": "Boaz",
             "password": "bailleur1234",
-            "role": UserRole.BAILLEUR
+            "role": "bailleur"
         },
         {
             "email": "ceo@boaz-study.com",
             "nom": "CEO",
             "prenom": "Admin",
             "password": "ceo1234", 
-            "role": UserRole.ADMIN_GENERALE
+            "role": "admin-generale"
         }
     ]
     
@@ -60,24 +59,15 @@ def seed_default_users():
                 updated_count += 1
             else:
                 print(f"➕ Création de {user_data['email']}...")
-                # Créer le schéma Pydantic
-                user_create = UserCreate(
-                    email=user_data["email"],
-                    nom=user_data["nom"],
-                    prenom=user_data["prenom"], 
-                    password=user_data["password"],
-                    role=user_data["role"],
-                    active=True
-                )
                 
                 # Créer l'utilisateur directement (évite le service qui peut avoir des validations)
                 db_user = User(
-                    email=user_create.email,
-                    nom=user_create.nom,
-                    prenom=user_create.prenom,
-                    password_hash=auth_service.hash_password(user_create.password),
-                    role=user_create.role,
-                    active=user_create.active
+                    email=user_data["email"],
+                    nom=user_data["nom"],
+                    prenom=user_data["prenom"],
+                    password_hash=auth_service.hash_password(user_data["password"]),
+                    role=user_data["role"],
+                    active=True
                 )
                 db.add(db_user)
                 db.flush()

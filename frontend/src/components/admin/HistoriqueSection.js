@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getSouscriptions, deleteSouscription, changerStatutSouscription } from '../../services/souscriptionService';
+import { getSouscriptions, deleteSouscription, changerStatutSouscription, payerSouscription, livrerSouscription } from '../../services/souscriptionService';
 import { previewAttestation, previewPdf, sendProformaEmail } from '../../services/proformaService';
 import WizardSouscription from './WizardSouscription';
 import SouscriptionViewModal from './SouscriptionViewModal';
 import ConfirmModal from '../common/ConfirmModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 const HistoriqueSection = ({ onDataChange }) => {
+  const { user } = useAuth();
   const [souscriptions, setSouscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSouscription, setSelectedSouscription] = useState(null);
@@ -32,6 +34,13 @@ const HistoriqueSection = ({ onDataChange }) => {
       setLoading(true);
       const data = await getSouscriptions();
       setSouscriptions(data);
+      
+      // DEBUG: Afficher les statuts des souscriptions et le rôle utilisateur
+      console.log('🔍 DEBUG - Utilisateur actuel:', user);
+      console.log('🔍 DEBUG - Souscriptions chargées:', data);
+      data.forEach(souscription => {
+        console.log(`🔍 DEBUG - Souscription ${souscription.id}: statut = "${souscription.statut}"`);
+      });
     } catch (error) {
       console.error('Erreur lors du chargement des souscriptions:', error);
     } finally {
@@ -64,11 +73,28 @@ const HistoriqueSection = ({ onDataChange }) => {
   const handlePayer = async (souscription) => {
     if (window.confirm('Confirmer le paiement de cette souscription ?')) {
       try {
-        await changerStatutSouscription(souscription.id, 'paye');
+        await payerSouscription(souscription.id);
         await loadSouscriptions();
         onDataChange();
       } catch (error) {
-        alert('Erreur lors du changement de statut: ' + error.message);
+        alert('Erreur lors du paiement: ' + error.message);
+      }
+    }
+  };
+
+  const handleLivrer = async (souscription) => {
+    if (window.confirm('Confirmer la livraison de cette souscription ?')) {
+      try {
+        await livrerSouscription(souscription.id);
+        await loadSouscriptions();
+        onDataChange();
+        alert('Souscription livrée avec succès !');
+      } catch (error) {
+        if (error.response?.status === 400) {
+          alert('Erreur de livraison: ' + (error.response.data.detail || error.message));
+        } else {
+          alert('Erreur lors de la livraison: ' + error.message);
+        }
       }
     }
   };
@@ -148,17 +174,17 @@ const HistoriqueSection = ({ onDataChange }) => {
 
   const getStatutBadge = (statut) => {
     const styles = {
-      'attente_paiement': 'bg-red-100 text-red-800',
-      'paye': 'bg-blue-100 text-blue-800',
-      'livre': 'bg-green-100 text-green-800',
-      'cloture': 'bg-gray-100 text-gray-800'
+      'ATTENTE_PAIEMENT': 'bg-red-100 text-red-800',
+      'ATTENTE_LIVRAISON': 'bg-blue-100 text-blue-800',
+      'LIVRE': 'bg-green-100 text-green-800',
+      'CLOTURE': 'bg-gray-100 text-gray-800'
     };
     
     const labels = {
-      'attente_paiement': 'Attente paiement',
-      'paye': 'Payé',
-      'livre': 'Livré',
-      'cloture': 'Clôturé'
+      'ATTENTE_PAIEMENT': 'Attente paiement',
+      'ATTENTE_LIVRAISON': 'Attente livraison',
+      'LIVRE': 'Livré',
+      'CLOTURE': 'Clôturé'
     };
 
     return (
@@ -283,27 +309,59 @@ const HistoriqueSection = ({ onDataChange }) => {
                           </svg>
                           Voir
                         </button>
-                        {souscription.statut === 'attente_paiement' && (
-                          <>
-                            <button
-                              onClick={() => handleModifier(souscription)}
-                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                              </svg>
-                              Modifier
-                            </button>
-                            <button
-                              onClick={() => handlePayer(souscription)}
-                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                              </svg>
-                              Payer
-                            </button>
-                          </>
+                        {/* DEBUG: Afficher les conditions */}
+                        {console.log(`🔍 DEBUG Souscription ${souscription.id}:`, {
+                          statut: souscription.statut,
+                          userRole: user?.role,
+                          modifierVisible: (souscription.statut === 'ATTENTE_PAIEMENT' || souscription.statut === 'ATTENTE_LIVRAISON'),
+                          payerVisible: souscription.statut === 'ATTENTE_PAIEMENT',
+                          livrerVisible: user?.role === 'admin-generale' && souscription.statut === 'ATTENTE_LIVRAISON',
+                          previewAttestationVisible: user?.role === 'admin-generale'
+                        })}
+                        {/* Bouton MODIFIER selon les nouvelles règles :
+                            - ATTENTE_PAIEMENT : visible
+                            - ATTENTE_LIVRAISON : visible  
+                            - LIVRE : masqué */}
+                        {(souscription.statut === 'ATTENTE_PAIEMENT' || souscription.statut === 'ATTENTE_LIVRAISON') && (
+                          <button
+                            onClick={() => handleModifier(souscription)}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Modifier
+                          </button>
+                        )}
+                        {/* Bouton ACTION PAYER selon les règles clarifiées :
+                            - ATTENTE_PAIEMENT : visible (pour effectuer le paiement)
+                            - PAYE : masqué (déjà payé)
+                            - LIVRE : masqué */}
+                        {souscription.statut === 'ATTENTE_PAIEMENT' && (
+                          <button
+                            onClick={() => handlePayer(souscription)}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                            Payer
+                          </button>
+                        )}
+                        {/* Bouton ACTION LIVRER selon les nouvelles règles :
+                            - ATTENTE_PAIEMENT : masqué
+                            - ATTENTE_LIVRAISON : visible UNIQUEMENT pour ADMIN-GENERALE
+                            - LIVRE : masqué (déjà livré) */}
+                        {user?.role === 'admin-generale' && souscription.statut === 'ATTENTE_LIVRAISON' && (
+                          <button
+                            onClick={() => handleLivrer(souscription)}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Livrer
+                          </button>
                         )}
                         <button
                           onClick={() => handleSendProforma(souscription)}
@@ -314,15 +372,22 @@ const HistoriqueSection = ({ onDataChange }) => {
                           </svg>
                           Envoyer Proforma
                         </button>
-                        <button
-                          onClick={() => handlePreviewAttestation(souscription)}
-                          className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                          </svg>
-                          Preview Attestation
-                        </button>
+                        {/* Bouton Preview Attestation - EXCLUSIVEMENT pour ADMIN-GENERALE */}
+                        {user?.role === 'admin-generale' && (
+                          <button
+                            onClick={() => handlePreviewAttestation(souscription)}
+                            className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Preview Attestation
+                          </button>
+                        )}
+                        {/* Bouton Supprimer selon les règles :
+                            - Attente paiement : visible pour tous
+                            - Payé : visible pour tous
+                            - Livré : visible pour tous */}
                         <button
                           onClick={() => handleDelete(souscription)}
                           className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"

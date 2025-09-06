@@ -472,7 +472,7 @@ def get_attestation_html_template():
             </div>
 
             <div class="attestation-content">
-                <p><strong>{{ nom_complet_ceo }}</strong>, né le {{ date_naissance_ceo }} à {{ ville_naissance_ceo }} en {{ pays_naissance_ceo }}, Président Directeur Générale de la société {{ nom_complet_organisation }} exploitant le site web {{ site_organisation }}, dont le siège social est situé au {{ adresse_organisation }}, inscrite au R.C.S. de {{ ville_organisation }} sous le numéro {{ numero_rcs_organisation }}, code NAF : {{ code_naf_organisation }}, <strong>atteste sur l'honneur que :</strong></p>
+                <p>Je soussigné, Monsieur <strong>{{ nom_complet_ceo }}</strong>, Président Directeur Générale de la société {{ nom_complet_organisation }} exploitant le site web {{ site_organisation }}, dont le siège social est situé au {{ adresse_organisation }}, inscrite au R.C.S. de {{ ville_organisation }} sous le numéro {{ numero_rcs_organisation }}, code NAF : {{ code_naf_organisation }}, <strong>atteste sur l'honneur que :</strong></p>
 
                 <p><strong>{{ nom_complet_client }}</strong> née le {{ date_naissance_client }} à {{ ville_naissance_client }}, {{ pays_naissance_client }}, logera dans l'un des logements proposés par la plateforme {{ site_organisation }} situé à l'adresse ci-dessous :</p>
 
@@ -559,7 +559,7 @@ def get_attestation_html_template():
             </div>
 
             <div class="attestation-content">
-                <p><strong>{{ nom_complet_ceo }}</strong>, né le {{ date_naissance_ceo }} à {{ ville_naissance_ceo }} en {{ pays_naissance_ceo }}, Président Directeur Générale de la société {{ nom_complet_organisation }} exploitant le site web {{ site_organisation }}, dont le siège social est situé au {{ adresse_organisation }}, inscrite au R.C.S. de {{ ville_organisation }} sous le numéro {{ numero_rcs_organisation }}, code NAF : {{ code_naf_organisation }}, <strong>atteste sur l'honneur que :</strong></p>
+                <p>Je soussigné, Monsieur <strong>{{ nom_complet_ceo }}</strong>, Président Directeur Générale de la société {{ nom_complet_organisation }} exploitant le site web {{ site_organisation }}, dont le siège social est situé au {{ adresse_organisation }}, inscrite au R.C.S. de {{ ville_organisation }} sous le numéro {{ numero_rcs_organisation }}, code NAF : {{ code_naf_organisation }}, <strong>atteste sur l'honneur que :</strong></p>
 
                 <p><strong>{{ nom_complet_client }}</strong> né(e) le {{ date_naissance_client }} à {{ ville_naissance_client }}, {{ pays_naissance_client }}, sera accompagné(e) sur l'ensemble de ses démarches administratives pour son installation en France, l'étudiant(e) sera notamment pris(e) en charge pour :</p>
 

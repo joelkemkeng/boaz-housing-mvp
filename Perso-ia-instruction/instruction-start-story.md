@@ -116,7 +116,7 @@ afin de tester et voir l'attestation de logement dans de bonne condition , ajout
 │   auto ,                                             
 │   c'est moi qui te donner les autorsation de passer d'une etaoe a une autres ,                                           
 │   et comme je t'ai dit , ne cherche pas a compliquer les choses , ca doit etre simple , Robuste , donc une exelente genstion des erreur    │
-│   front et back , et tres fonctionnel ,     
+│   objectif front et back , et tres fonctionnel , tres simple , sans complication , Robuste solide
 
 
 
@@ -124,3 +124,31 @@ afin de tester et voir l'attestation de logement dans de bonne condition , ajout
 
 cree un dossier "documentation-test-user" chaque fichier concerne chaque etape , et ca doit decrire comme j'effectue les test de la tache 
   moi meme , si il ya un script python a executer , documenter comment l'executer , et decrire bien
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+
+  ensuite tu analyse boaz-housing-mvp/Cahier de charge et contexte/Specification-supplementaire-mvp-v1/Planing-to-do-specf-finish.md  et boaz-housing-mvp/Cahier de charge et contexte/Specification-supplementaire-mvp-v1/TO-DO.md    car ce sont les choses a faire pour finir notre MVP ,  ensuite tu analys pour voir ce qui a ete fais , et ce qui n'a pas encore ete fais afin que nous poursuivont le cour du developpement
+
+
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+
+
+
+  │ > commencons donc etape par etape ,surtout , ne jamais passe d'une etape a une autre sans mon autorisation , et sans effectuer les test    │
+│   auto ,                                             
+│   c'est moi qui te donner les autorsation de passer d'une etaoe a une autres ,                                           
+│   et comme je t'ai dit , ne cherche pas a compliquer les choses , ca doit etre simple , Robuste , donc une exelente genstion des erreur    │
+│   objectif front et back , et tres fonctionnel , tres simple , sans complication , Robuste solide
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------

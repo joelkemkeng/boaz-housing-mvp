@@ -19,7 +19,7 @@ class User(Base):
     nom = Column(String(100), nullable=False)
     prenom = Column(String(100), nullable=False)
     password_hash = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), nullable=False)
+    role = Column(Enum(UserRole, values_callable=lambda obj: [e.value for e in obj]), nullable=False)
     active = Column(Boolean, default=True, nullable=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -71,10 +71,23 @@ class User(Base):
     
     @validates('role')
     def validate_role(self, key, role):
-        if role not in UserRole:
-            valid_roles = [r.value for r in UserRole]
-            raise ValueError(f"Rôle invalide. Rôles valides: {', '.join(valid_roles)}")
-        return role
+        # Si c'est déjà une instance UserRole, l'accepter
+        if isinstance(role, UserRole):
+            return role
+        
+        # Si c'est un string, vérifier qu'il correspond à une valeur valide et le convertir
+        if isinstance(role, str):
+            valid_values = [r.value for r in UserRole]
+            if role not in valid_values:
+                raise ValueError(f"Rôle invalide. Rôles valides: {', '.join(valid_values)}")
+            # Convertir le string en enum
+            for r in UserRole:
+                if r.value == role:
+                    return r
+        
+        # Cas par défaut - erreur
+        valid_roles = [r.value for r in UserRole]
+        raise ValueError(f"Rôle invalide. Type: {type(role)}, Valeur: {role}. Rôles valides: {', '.join(valid_roles)}")
     
     @validates('password_hash')
     def validate_password_hash(self, key, password_hash):

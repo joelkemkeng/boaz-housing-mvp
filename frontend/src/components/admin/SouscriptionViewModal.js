@@ -45,22 +45,22 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
 
   const getStatutBadge = (statut) => {
     const configs = {
-      'attente_paiement': {
-        style: 'bg-orange-100 text-orange-800 border-orange-200',
+      'ATTENTE_PAIEMENT': {
+        style: 'bg-red-100 text-red-800 border-red-200',
         icon: '⏳',
         label: 'En attente de paiement'
       },
-      'paye': {
+      'ATTENTE_LIVRAISON': {
         style: 'bg-blue-100 text-blue-800 border-blue-200',
-        icon: '💳',
-        label: 'Payé'
+        icon: '📦',
+        label: 'En attente de livraison'
       },
-      'livre': {
+      'LIVRE': {
         style: 'bg-green-100 text-green-800 border-green-200',
         icon: '✅',
         label: 'Livré'
       },
-      'cloture': {
+      'CLOTURE': {
         style: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: '📋',
         label: 'Clôturé'
@@ -254,6 +254,16 @@ const SouscriptionViewModal = ({ souscription, show, onClose }) => {
             <dl className="grid grid-cols-2 gap-4">
               {renderInfoField("Date d'entrée prévue", formatDate(souscription.date_entree_prevue))}
               {renderInfoField("Durée de location", `${souscription.duree_location_mois} mois`)}
+              {souscription.date_livraison && renderInfoField("Date de livraison", formatDate(souscription.date_livraison))}
+              {souscription.date_expiration && renderInfoField("Date d'expiration", formatDate(souscription.date_expiration))}
+              {souscription.preuve_paiement_path && renderInfoField("Preuve de paiement", (
+                <button 
+                  className="text-blue-600 hover:text-blue-800 underline"
+                  onClick={() => window.open(`/api/souscriptions/${souscription.id}/preuve-paiement`, '_blank')}
+                >
+                  Voir la preuve
+                </button>
+              ))}
               {renderInfoField("Date de création", formatDate(souscription.created_at))}
               {renderInfoField("Dernière modification", formatDate(souscription.updated_at))}
             </dl>

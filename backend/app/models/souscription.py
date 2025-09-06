@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, JSON
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.sql import func
 from app.database import Base
 import enum
@@ -7,7 +7,6 @@ import enum
 class StatutSouscription(str, enum.Enum):
     ATTENTE_PAIEMENT = "ATTENTE_PAIEMENT"
     ATTENTE_LIVRAISON = "ATTENTE_LIVRAISON"
-    PAYE = "PAYE"
     LIVRE = "LIVRE"
     CLOTURE = "CLOTURE"
 
@@ -51,10 +50,30 @@ class Souscription(Base):
     cree_par_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Statut et tracking
-    statut = Column(Enum(StatutSouscription), default=StatutSouscription.ATTENTE_PAIEMENT)
+    statut = Column(Enum(StatutSouscription, values_callable=lambda obj: [e.value for e in obj]), default=StatutSouscription.ATTENTE_PAIEMENT)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relations
     logement = relationship("Logement", backref="souscriptions")
     createur = relationship("User", foreign_keys=[cree_par_user_id])
+    
+    @validates('statut')
+    def validate_statut(self, key, statut):
+        # Si c'est déjà une instance StatutSouscription, l'accepter
+        if isinstance(statut, StatutSouscription):
+            return statut
+        
+        # Si c'est un string, vérifier qu'il correspond à une valeur valide et le convertir
+        if isinstance(statut, str):
+            valid_values = [s.value for s in StatutSouscription]
+            if statut not in valid_values:
+                raise ValueError(f"Statut invalide. Statuts valides: {', '.join(valid_values)}")
+            # Convertir le string en enum
+            for s in StatutSouscription:
+                if s.value == statut:
+                    return s
+        
+        # Cas par défaut - erreur
+        valid_statuts = [s.value for s in StatutSouscription]
+        raise ValueError(f"Statut invalide. Type: {type(statut)}, Valeur: {statut}. Statuts valides: {', '.join(valid_statuts)}")

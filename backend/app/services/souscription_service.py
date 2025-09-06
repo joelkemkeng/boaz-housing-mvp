@@ -59,9 +59,9 @@ class SouscriptionService:
         if not db_souscription:
             raise ValueError("Souscription non trouvée")
         
-        # Empêcher modification si statut >= payé
-        if db_souscription.statut in [StatutSouscription.PAYE, StatutSouscription.LIVRE, StatutSouscription.CLOTURE]:
-            raise ValueError("Modification interdite pour les souscriptions payées")
+        # Empêcher modification si statut >= livraison
+        if db_souscription.statut in [StatutSouscription.LIVRE, StatutSouscription.CLOTURE]:
+            raise ValueError("Modification interdite pour les souscriptions livrées ou clôturées")
         
         # Vérifier le nouveau logement s'il est fourni
         update_data = souscription_update.dict(exclude_unset=True)
@@ -89,11 +89,8 @@ class SouscriptionService:
         if not db_souscription:
             raise ValueError("Souscription non trouvée")
         
-        # Si passage à "payé", changer statut logement
-        if nouveau_statut == StatutSouscription.PAYE and db_souscription.statut == StatutSouscription.ATTENTE_PAIEMENT:
-            logement = db.query(Logement).filter(Logement.id == db_souscription.logement_id).first()
-            if logement:
-                logement.statut = StatutLogement.OCCUPE
+        # Si passage à "attente livraison", le logement reste disponible jusqu'à la livraison effective
+        # La logique de changement de statut du logement est gérée dans livrer_souscription()
         
         db_souscription.statut = nouveau_statut
         db.commit()
